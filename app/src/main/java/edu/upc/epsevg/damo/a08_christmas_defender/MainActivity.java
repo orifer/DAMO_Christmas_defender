@@ -2,6 +2,7 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,13 +15,15 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     int width, height, size;
     LinearLayout linlay;
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     Paint paint;
     CameraManager cameramanager;
     Ball ball;
-    SegmentsManager segmentsManager;
+    //SegmentsManager segmentsManager;
     Handler handler;
     long time;
     final int n = 10;
@@ -39,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
+
+        // Fullscreen
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         linlay = new LinearLayout(this);
         linlay.setOrientation(LinearLayout.VERTICAL);
@@ -50,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getSize(myPoint);
         width = myPoint.x;
         height = myPoint.y;
-        size = (int) (width * 0.9);
-        imageView.setLayoutParams(new LinearLayout.LayoutParams(size, size));
-        bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        size = width;
+        imageView.setLayoutParams(new LinearLayout.LayoutParams(width, height));
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         canvas = new Canvas();
         imageView.setImageBitmap(bitmap);
         canvas.setBitmap(bitmap);
@@ -63,29 +70,17 @@ public class MainActivity extends AppCompatActivity {
         cameramanager.center = new point(n/2.0, n/2.0);
         cameramanager.right = new point(n, n/2.0);
 
-        ball = new Ball(new point(0.5,0.5),0.3);
-        segmentsManager = new SegmentsManager(n);
-
-        Button bt = new Button(this);
-        bt.setText("New Polygonal");
-        bt.setTextSize(20);
-        bt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Poligonal polygonal = new Poligonal();
-                //poligonals.add(polygonal);
-                drawAll();
-            }
-        });
-        linlay.addView(bt);
+        ball = new Ball(new point(0.5,0.5),0.6);
+        //segmentsManager = new SegmentsManager(n);
 
         imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                Log.i("TOUCH", event.toString());
+                //Log.i("TOUCH", event.toString());
                 point finger = new point(event.getX(), event.getY());
                 point worldFinger = screen2world(finger);
 
+                // Mover bola
                 if (event.getPointerCount() == 1 &&
                         (event.getAction() == MotionEvent.ACTION_MOVE ||
                                 event.getAction() == MotionEvent.ACTION_DOWN)) {
@@ -112,16 +107,18 @@ public class MainActivity extends AppCompatActivity {
 
                 ball.thereIsDestination = false;
 
-                if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
-                    cameramanager.touch();
-                } else if (event.getPointerCount() == 1) {
-                    cameramanager.touch(screen2canonic(finger));
-                    imageView.invalidate();
-                } else {
-                    point finger1 = new point(event.getX(0), event.getY(0));
-                    point finger2 = new point(event.getX(1), event.getY(1));
-                    cameramanager.touch(screen2canonic(finger1), screen2canonic(finger2));
-                }
+                // Mover camara
+//                if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
+//                    cameramanager.touch();
+//                } else if (event.getPointerCount() == 1) {
+//                    cameramanager.touch(screen2canonic(finger));
+//                    imageView.invalidate();
+//                } else {
+//                    point finger1 = new point(event.getX(0), event.getY(0));
+//                    point finger2 = new point(event.getX(1), event.getY(1));
+//                    cameramanager.touch(screen2canonic(finger1), screen2canonic(finger2));
+//                }
+
                 return true;
             }
         });
@@ -134,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 long newTime = System.currentTimeMillis();
                 double delta = (newTime - time)/1000.0;
                 time = newTime;
-                ball.move(delta, segmentsManager);
+                ball.move(delta);
                 drawAll();
                 handler.postDelayed(this, 50);
             }
@@ -218,21 +215,30 @@ public class MainActivity extends AppCompatActivity {
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
 
         // Segments
-        ArrayList<Segment> list = segmentsManager.list;
-        for (Segment s : list) {
-            drawSegment(s);
-        }
+//        ArrayList<Segment> list = segmentsManager.list;
+//        for (Segment s : list) {
+//            drawSegment(s);
+//        }
 
         // Linea uwu
         if (ball.thereIsDestination) {
-            point dest = world2screen( point.sum(ball.c, point.mul(ball.r, point.unitary(point.sub(ball.destination, ball.c)))) );
+            point dest = world2screen(ball.destination);
             point or = world2screen(ball.c);
 
             paint.setColor(Color.LTGRAY);
             paint.setStyle(Paint.Style.FILL);
             paint.setStrokeWidth(5);
-            canvas.drawLine( (float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+            canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
         }
+//        if (ball.thereIsDestination) {
+//            point dest = world2screen( point.sum(ball.c, point.mul(ball.r, point.unitary(point.sub(ball.destination, ball.c)))) );
+//            point or = world2screen(ball.c);
+//
+//            paint.setColor(Color.LTGRAY);
+//            paint.setStyle(Paint.Style.FILL);
+//            paint.setStrokeWidth(5);
+//            canvas.drawLine( (float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+//        }
 
 //        for (Poligonal p : poligonals) {
 //            drawPolygonal(p);
