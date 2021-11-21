@@ -2,6 +2,7 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -67,13 +68,14 @@ public class MainActivity extends Activity {
         paint = new Paint();
 
         cameramanager = new CameraManager();
-        cameramanager.center = new point(n/2.0, n/2.0);
-        cameramanager.right = new point(n, n/2.0);
+        cameramanager.center = new point(n / 2.0, n / 2.0);
+        cameramanager.right = new point(n, n / 2.0);
 
-        ball = new Ball(new point(0.5,0.5),0.6);
+        ball = new Ball(new point(0.5, 0.5), 0.6);
         //segmentsManager = new SegmentsManager(n);
 
         imageView.setOnTouchListener(new View.OnTouchListener() {
+
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 //Log.i("TOUCH", event.toString());
@@ -86,7 +88,8 @@ public class MainActivity extends Activity {
                                 event.getAction() == MotionEvent.ACTION_DOWN)) {
 
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (point.distance(worldFinger, ball.c) < 3*ball.r) {
+                        if (point.distance(worldFinger, ball.c) < 3 * ball.r) {
+                            ball.holdingDown = true;
                             ball.thereIsDestination = true;
                             ball.destination = worldFinger;
                         } else {
@@ -97,7 +100,9 @@ public class MainActivity extends Activity {
                     }
 
                     if (ball.thereIsDestination) {
-                        ball.destination = worldFinger;
+                        ball.destination = point.sum(ball.c, point.mul(-2, point.sub(worldFinger, ball.c)));
+                        ball.speedFactor = point.distance(ball.c, ball.destination) * 2;
+                        Log.i("speed: ", Double.toString(ball.speedFactor));
                     } else {
                         cameramanager.touch(screen2canonic(finger));
                     }
@@ -105,19 +110,21 @@ public class MainActivity extends Activity {
                     return true;
                 }
 
-                ball.thereIsDestination = false;
+                ball.holdingDown = false;
+
+                //ball.thereIsDestination = false;
 
                 // Mover camara
-//                if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
-//                    cameramanager.touch();
-//                } else if (event.getPointerCount() == 1) {
-//                    cameramanager.touch(screen2canonic(finger));
-//                    imageView.invalidate();
-//                } else {
-//                    point finger1 = new point(event.getX(0), event.getY(0));
-//                    point finger2 = new point(event.getX(1), event.getY(1));
-//                    cameramanager.touch(screen2canonic(finger1), screen2canonic(finger2));
-//                }
+                if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
+                    cameramanager.touch();
+                } else if (event.getPointerCount() == 1) {
+                    cameramanager.touch(screen2canonic(finger));
+                    imageView.invalidate();
+                } else {
+                    point finger1 = new point(event.getX(0), event.getY(0));
+                    point finger2 = new point(event.getX(1), event.getY(1));
+                    cameramanager.touch(screen2canonic(finger1), screen2canonic(finger2));
+                }
 
                 return true;
             }
@@ -129,13 +136,13 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 long newTime = System.currentTimeMillis();
-                double delta = (newTime - time)/1000.0;
+                double delta = (newTime - time) / 1000.0;
                 time = newTime;
                 ball.move(delta);
                 drawAll();
-                handler.postDelayed(this, 50);
+                handler.postDelayed(this, 33);
             }
-        }, 50);
+        }, 33); // 33 ms = 30fps+-
 
         setContentView(linlay);
         drawAll();
@@ -144,15 +151,15 @@ public class MainActivity extends Activity {
 
     private point canonic2screen(point p) {
         return new point(
-                p.x * size/2 + size/2,
-                size/2 - p.y * size/2
+                p.x * size / 2 + size / 2,
+                size / 2 - p.y * size / 2
         );
     }
 
     private point screen2canonic(point p) {
         return new point(
-                (p.x - size/2) / size * 2,
-                -(p.y - size/2) / size * 2
+                (p.x - size / 2) / size * 2,
+                -(p.y - size / 2) / size * 2
         );
     }
 
@@ -166,8 +173,8 @@ public class MainActivity extends Activity {
 
     private double world2ScreenFactor() {
         return point.distance(
-                world2screen(new point(0,0)),
-                world2screen(new point(1 ,0))
+                world2screen(new point(0, 0)),
+                world2screen(new point(1, 0))
         );
     }
 
@@ -197,8 +204,8 @@ public class MainActivity extends Activity {
         point p1 = world2screen(segment.p1);
         point p2 = world2screen(segment.p2);
         Path path = new Path();
-        path.moveTo( (float)p1.x, (float)p1.y );
-        path.lineTo( (float)p2.x, (float)p2.y );
+        path.moveTo((float) p1.x, (float) p1.y);
+        path.lineTo((float) p2.x, (float) p2.y);
         paint.setColor(Color.YELLOW);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10);
@@ -214,15 +221,9 @@ public class MainActivity extends Activity {
         paint.setStyle(Paint.Style.FILL);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
 
-        // Segments
-//        ArrayList<Segment> list = segmentsManager.list;
-//        for (Segment s : list) {
-//            drawSegment(s);
-//        }
-
-        // Linea uwu
-        if (ball.thereIsDestination) {
-            point dest = world2screen(ball.destination);
+        // Linea de disparo
+        if (ball.holdingDown) {
+            point dest = world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
             point or = world2screen(ball.c);
 
             paint.setColor(Color.LTGRAY);
@@ -230,14 +231,11 @@ public class MainActivity extends Activity {
             paint.setStrokeWidth(5);
             canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
         }
-//        if (ball.thereIsDestination) {
-//            point dest = world2screen( point.sum(ball.c, point.mul(ball.r, point.unitary(point.sub(ball.destination, ball.c)))) );
-//            point or = world2screen(ball.c);
-//
-//            paint.setColor(Color.LTGRAY);
-//            paint.setStyle(Paint.Style.FILL);
-//            paint.setStrokeWidth(5);
-//            canvas.drawLine( (float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+
+        // Segments
+//        ArrayList<Segment> list = segmentsManager.list;
+//        for (Segment s : list) {
+//            drawSegment(s);
 //        }
 
 //        for (Poligonal p : poligonals) {

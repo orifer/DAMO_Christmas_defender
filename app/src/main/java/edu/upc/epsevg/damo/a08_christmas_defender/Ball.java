@@ -8,16 +8,18 @@ public class Ball {
     boolean thereIsDestination;
     point destination;
     double speedFactor;
+    boolean holdingDown;
 
     public Ball(point inc, double inr) {
         c = inc;
         r = inr;
         thereIsDestination = false;
         speedFactor = 10;
+        holdingDown = false;
     }
 
     public void move(double delta) {
-        if (!thereIsDestination) return;
+        if (holdingDown || !thereIsDestination) return;
         double d = point.distance(c, destination);
         double traversed = r*speedFactor*delta;
 
