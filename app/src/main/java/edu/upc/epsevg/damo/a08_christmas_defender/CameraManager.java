@@ -33,8 +33,16 @@ public class CameraManager {
 
         point worldFingerBis = camera2world(cameraFinger);
         point move = point.sub(worldFinger, worldFingerBis);
-        center = point.sum(center, move);
-        right = point.sum(right, move);
+
+
+        // Restrict camera movement
+        point aux = point.sum(center, move);
+        int movementRange = 10;
+        if ((aux.x < movementRange && aux.y < movementRange) && (aux.x > -movementRange && aux.y > -movementRange)) {
+            center = aux;
+            right = point.sum(right, move);
+        }
+
     }
 
     public void touch(point camerafinger1, point camerafinger2) {
@@ -47,8 +55,18 @@ public class CameraManager {
 
         point centerbis = point.world2reference(camerafinger1, camerafinger2, new point(0,0));
         point rightbis = point.world2reference(camerafinger1, camerafinger2, new point(1,0));
-        center = point.reference2world(worldFinger1,worldFinger2, centerbis);
-        right = point.reference2world(worldFinger1,worldFinger2, rightbis);
+
+        // Restrict camera movement
+        point auxC = point.reference2world(worldFinger1,worldFinger2, centerbis);
+        point auxR = point.reference2world(worldFinger1,worldFinger2, rightbis);
+        double distance = point.distance(auxC, auxR);
+        double max = 15;
+        double min = 8;
+
+        if (distance < max && distance > min) {
+            center = auxC;
+            right = auxR;
+        }
     }
 
 

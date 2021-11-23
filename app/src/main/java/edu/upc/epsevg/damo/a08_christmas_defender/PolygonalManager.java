@@ -9,6 +9,9 @@ public class PolygonalManager {
     public PolygonalManager() {
         this.list = new ArrayList<>();
         generatePolygon();
+        generatePolygon();
+        generatePolygon();
+        generatePolygon();
     }
 
     private void generatePolygon() {

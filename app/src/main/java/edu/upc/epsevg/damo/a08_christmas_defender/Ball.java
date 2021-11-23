@@ -66,8 +66,6 @@ public class Ball {
     }
 
     public void pushAside(Polygonal polygon) {
-        Log.i("DEBUG", "Colision detectada");
-
         point p1 = polygon.center;
         point p2 = point.mul(0.9,polygon.center);
         pushAside(p1);

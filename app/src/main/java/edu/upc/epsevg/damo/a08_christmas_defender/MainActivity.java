@@ -2,11 +2,15 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -17,6 +21,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 
@@ -30,11 +36,12 @@ public class MainActivity extends Activity {
     Paint paint;
     CameraManager cameramanager;
     Ball ball;
-    //SegmentsManager segmentsManager;
     PolygonalManager polygonalManager;
     Handler handler;
     long time;
-    final int n = 10;
+
+    Bitmap background;
+    Bitmap tree;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +52,15 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        // Main layout
         linlay = new LinearLayout(this);
         linlay.setOrientation(LinearLayout.VERTICAL);
         linlay.setGravity(Gravity.CENTER_HORIZONTAL);
         imageView = new ImageView(this);
         linlay.addView(imageView);
+
+        background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
+        tree = BitmapFactory.decodeResource(this.getResources(), R.drawable.tree);
 
         Point myPoint = new Point();
         getWindowManager().getDefaultDisplay().getSize(myPoint);
@@ -64,13 +75,13 @@ public class MainActivity extends Activity {
 
         paint = new Paint();
 
+        // Camara
         cameramanager = new CameraManager();
         cameramanager.center = new point(0, 0);
         cameramanager.right = new point(10, 0);
 
         ball = new Ball(new point(0, 0), 1);
 
-        //segmentsManager = new SegmentsManager(n);
         polygonalManager = new PolygonalManager();
 
         imageView.setOnTouchListener(new View.OnTouchListener() {
@@ -110,8 +121,6 @@ public class MainActivity extends Activity {
                 }
 
                 ball.holdingDown = false;
-
-                //ball.thereIsDestination = false;
 
                 // Mover camara
                 if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
@@ -212,13 +221,38 @@ public class MainActivity extends Activity {
     }
 
     private void drawAll() {
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(Color.WHITE);
 
+        // Draw background
+        point center = new point(0,0);
+        int x = (int) world2screen(center).x - (background.getWidth()/2);
+        int y = (int) world2screen(center).y - (background.getHeight()/2);
+        canvas.drawBitmap(background, x , y, paint);
+
+        // Draw stuff
+        x = 0;
+        y = 1;
+        center = new point(x,y);
+        x = (int) world2screen(center).x;
+        y = (int) world2screen(center).y;
+        canvas.drawBitmap(tree, null, new RectF(0, 0, x, y ), null);
+
+
+        // Draw ball
         point c = world2screen(ball.c);
         double r = ball.r * world2ScreenFactor();
+
+        // Draw base color
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.FILL);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
+
+        // Draw border
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(6);
+        canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
+
 
         // Linea de disparo
         if (ball.holdingDown) {
