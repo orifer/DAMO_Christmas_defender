@@ -1,5 +1,7 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class Ball {
@@ -63,6 +65,31 @@ public class Ball {
         }
     }
 
+    public void pushAside(Polygonal polygon) {
+        Log.i("DEBUG", "Colision detectada");
+
+        point p1 = polygon.center;
+        point p2 = point.mul(0.9,polygon.center);
+        pushAside(p1);
+        pushAside(p2);
+        point p1p2 = point.sub(p2,p1);
+        point p1c = point.sub(c, p1);
+        double scalarProd = point.scalarProd(p1p2, p1c);
+
+        // Hacer que no sean segmentos extendidos hasta infinito
+        if (scalarProd <= 0) return;
+        if (scalarProd >= point.norm(p1p2)) return;
+        point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
+        pushAside(projection);
+    }
+
+    public void pushAside(PolygonalManager polygonsManager) {
+        ArrayList<Polygonal> list = polygonsManager.list;
+        for (Polygonal s : list) {
+            pushAside(s);
+        }
+    }
+
     public void move(double delta, SegmentsManager segmentsManager) {
         // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
         double traversed = r * speedFactor * delta;
@@ -70,6 +97,16 @@ public class Ball {
         for (int i = 0; i < steps; i++) {
             move(delta/steps);
             pushAside(segmentsManager);
+        }
+    }
+
+    public void move(double delta, PolygonalManager polygonalManager) {
+        // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
+        double traversed = r * speedFactor * delta;
+        int steps = (int) (traversed / (r/2.0)) + 1;
+        for (int i = 0; i < steps; i++) {
+            move(delta/steps);
+            pushAside(polygonalManager);
         }
     }
 

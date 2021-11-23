@@ -1,8 +1,5 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -18,7 +15,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -35,6 +31,7 @@ public class MainActivity extends Activity {
     CameraManager cameramanager;
     Ball ball;
     //SegmentsManager segmentsManager;
+    PolygonalManager polygonalManager;
     Handler handler;
     long time;
     final int n = 10;
@@ -68,11 +65,13 @@ public class MainActivity extends Activity {
         paint = new Paint();
 
         cameramanager = new CameraManager();
-        cameramanager.center = new point(n / 2.0, n / 2.0);
-        cameramanager.right = new point(n, n / 2.0);
+        cameramanager.center = new point(0, 0);
+        cameramanager.right = new point(10, 0);
 
-        ball = new Ball(new point(0.5, 0.5), 0.6);
+        ball = new Ball(new point(0, 0), 1);
+
         //segmentsManager = new SegmentsManager(n);
+        polygonalManager = new PolygonalManager();
 
         imageView.setOnTouchListener(new View.OnTouchListener() {
 
@@ -138,7 +137,7 @@ public class MainActivity extends Activity {
                 long newTime = System.currentTimeMillis();
                 double delta = (newTime - time) / 1000.0;
                 time = newTime;
-                ball.move(delta);
+                ball.move(delta, polygonalManager);
                 drawAll();
                 handler.postDelayed(this, 33);
             }
@@ -151,15 +150,15 @@ public class MainActivity extends Activity {
 
     private point canonic2screen(point p) {
         return new point(
-                p.x * size / 2 + size / 2,
-                size / 2 - p.y * size / 2
+                p.x * width / 2 + width / 2,
+                height / 2 - p.y * width / 2
         );
     }
 
     private point screen2canonic(point p) {
         return new point(
-                (p.x - size / 2) / size * 2,
-                -(p.y - size / 2) / size * 2
+                (p.x - width / 2) / width * 2,
+                -(p.y - height / 2) / width * 2
         );
     }
 
@@ -178,27 +177,27 @@ public class MainActivity extends Activity {
         );
     }
 
-//    private void drawPolygonal(Poligonal poligonal) {
-//        Path path = new Path();
-//        point[] list = poligonal.list;
-//        point p = canonic2screen(cameramanager.world2camera(list[0]));
-//        path.moveTo((int) p.x, (int) p.y);
-//
-//        for (int i = 1; i < list.length; i++) {
-//            p = canonic2screen(cameramanager.world2camera(list[i]));
-//            path.lineTo((int) p.x, (int) p.y);
-//        }
-//        path.close();
-//
-//        paint.setColor(poligonal.interiorColor);
-//        paint.setStyle(Paint.Style.FILL);
-//        canvas.drawPath(path, paint);
-//
-//        paint.setColor(poligonal.strokeColor);
-//        paint.setStyle(Paint.Style.STROKE);
-//        paint.setStrokeWidth(20);
-//        canvas.drawPath(path, paint);
-//    }
+    private void drawPolygonal(Polygonal polygonal) {
+        Path path = new Path();
+        point[] list = polygonal.list;
+        point p = canonic2screen(cameramanager.world2camera(list[0]));
+        path.moveTo((int) p.x, (int) p.y);
+
+        for (int i = 1; i < list.length; i++) {
+            p = canonic2screen(cameramanager.world2camera(list[i]));
+            path.lineTo((int) p.x, (int) p.y);
+        }
+        path.close();
+
+        paint.setColor(polygonal.interiorColor);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawPath(path, paint);
+
+        paint.setColor(polygonal.strokeColor);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(20);
+        canvas.drawPath(path, paint);
+    }
 
     private void drawSegment(Segment segment) {
         point p1 = world2screen(segment.p1);
@@ -238,9 +237,9 @@ public class MainActivity extends Activity {
 //            drawSegment(s);
 //        }
 
-//        for (Poligonal p : poligonals) {
-//            drawPolygonal(p);
-//        }
+        for (Polygonal p : polygonalManager.list) {
+            drawPolygonal(p);
+        }
 //        paint.setColor(Color.YELLOW);
 //        paint.setStyle(Paint.Style.FILL);
 //        canvas.drawCircle(size/2, size/2, 10, paint);
