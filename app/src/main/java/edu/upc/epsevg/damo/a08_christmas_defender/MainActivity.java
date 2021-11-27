@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
 
     Bitmap background;
     Bitmap tree;
+    Bitmap snowman;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +60,10 @@ public class MainActivity extends Activity {
         imageView = new ImageView(this);
         linlay.addView(imageView);
 
+        // Load Bitmaps
         background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
         tree = BitmapFactory.decodeResource(this.getResources(), R.drawable.tree);
+        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
 
         Point myPoint = new Point();
         getWindowManager().getDefaultDisplay().getSize(myPoint);
@@ -80,7 +83,7 @@ public class MainActivity extends Activity {
         cameramanager.center = new point(0, 0);
         cameramanager.right = new point(10, 0);
 
-        ball = new Ball(new point(0, 0), 1);
+        ball = new Ball(new point(0, -12), 1);
 
         polygonalManager = new PolygonalManager();
 
@@ -112,7 +115,7 @@ public class MainActivity extends Activity {
                     if (ball.thereIsDestination) {
                         ball.destination = point.sum(ball.c, point.mul(-2, point.sub(worldFinger, ball.c)));
                         ball.speedFactor = point.distance(ball.c, ball.destination) * 2;
-                        Log.i("speed: ", Double.toString(ball.speedFactor));
+                        //Log.i("speed: ", Double.toString(ball.speedFactor));
                     } else {
                         cameramanager.touch(screen2canonic(finger));
                     }
@@ -147,6 +150,7 @@ public class MainActivity extends Activity {
                 double delta = (newTime - time) / 1000.0;
                 time = newTime;
                 ball.move(delta, polygonalManager);
+                polygonalManager.movePolygonals(delta);
                 drawAll();
                 handler.postDelayed(this, 33);
             }
@@ -186,27 +190,35 @@ public class MainActivity extends Activity {
         );
     }
 
-    private void drawPolygonal(Polygonal polygonal) {
-        Path path = new Path();
-        point[] list = polygonal.list;
-        point p = canonic2screen(cameramanager.world2camera(list[0]));
-        path.moveTo((int) p.x, (int) p.y);
-
-        for (int i = 1; i < list.length; i++) {
-            p = canonic2screen(cameramanager.world2camera(list[i]));
-            path.lineTo((int) p.x, (int) p.y);
-        }
-        path.close();
-
-        paint.setColor(polygonal.interiorColor);
-        paint.setStyle(Paint.Style.FILL);
-        canvas.drawPath(path, paint);
-
-        paint.setColor(polygonal.strokeColor);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(20);
-        canvas.drawPath(path, paint);
+    private void drawEnemy(Polygonal polygonal) {
+        int x = (int) world2screen(polygonal.center).x;
+        int y = (int) world2screen(polygonal.center).y;
+        int size = 100;
+        canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
+        //canvas.drawCircle((int) x, (int) y, (float) polygonal.radius, paint);
     }
+
+//    private void drawPolygonal(Polygonal polygonal) {
+//        Path path = new Path();
+//        point[] list = polygonal.list;
+//        point p = canonic2screen(cameramanager.world2camera(list[0]));
+//        path.moveTo((int) p.x, (int) p.y);
+//
+//        for (int i = 1; i < list.length; i++) {
+//            p = canonic2screen(cameramanager.world2camera(list[i]));
+//            path.lineTo((int) p.x, (int) p.y);
+//        }
+//        path.close();
+//
+//        paint.setColor(polygonal.interiorColor);
+//        paint.setStyle(Paint.Style.FILL);
+//        canvas.drawPath(path, paint);
+//
+//        paint.setColor(polygonal.strokeColor);
+//        paint.setStyle(Paint.Style.STROKE);
+//        paint.setStrokeWidth(20);
+//        canvas.drawPath(path, paint);
+//    }
 
     private void drawSegment(Segment segment) {
         point p1 = world2screen(segment.p1);
@@ -229,14 +241,22 @@ public class MainActivity extends Activity {
         int y = (int) world2screen(center).y - (background.getHeight()/2);
         canvas.drawBitmap(background, x , y, paint);
 
-        // Draw stuff
-        x = 0;
-        y = 1;
-        center = new point(x,y);
-        x = (int) world2screen(center).x;
-        y = (int) world2screen(center).y;
-        canvas.drawBitmap(tree, null, new RectF(0, 0, x, y ), null);
+        // Draw enemies
+        for (Polygonal p : polygonalManager.list) {
+            drawEnemy(p);
+        }
 
+        // Draw a tree
+//        point treeCenter = new point(1,1);
+//        x = (int) world2screen(treeCenter).x;
+//        y = (int) world2screen(treeCenter).y;
+//        canvas.drawBitmap(tree, null, new RectF(x,y, x+200, y+200), null);
+
+        // HUD
+//        point hudCenter = new point(1,1);
+//        x = (int) world2screen(hudCenter).x;
+//        y = (int) world2screen(hudCenter).y;
+//        canvas.drawBitmap(tree, null, new RectF(1,1, 400, 400), null);
 
         // Draw ball
         point c = world2screen(ball.c);
@@ -252,7 +272,6 @@ public class MainActivity extends Activity {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(6);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
-
 
         // Linea de disparo
         if (ball.holdingDown) {
@@ -271,9 +290,6 @@ public class MainActivity extends Activity {
 //            drawSegment(s);
 //        }
 
-        for (Polygonal p : polygonalManager.list) {
-            drawPolygonal(p);
-        }
 //        paint.setColor(Color.YELLOW);
 //        paint.setStyle(Paint.Style.FILL);
 //        canvas.drawCircle(size/2, size/2, 10, paint);

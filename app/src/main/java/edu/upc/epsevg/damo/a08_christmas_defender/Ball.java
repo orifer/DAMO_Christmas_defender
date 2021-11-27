@@ -42,32 +42,32 @@ public class Ball {
         c = point.sum(p, point.mul(r, point.unitary(pc)));
     }
 
-    public void pushAside(Segment segment) {
-        point p1 = segment.p1;
-        point p2 = segment.p2;
-        pushAside(p1);
-        pushAside(p2);
-        point p1p2 = point.sub(p2,p1);
-        point p1c = point.sub(c, p1);
-        double scalarProd = point.scalarProd(p1p2, p1c);
+//    public void pushAside(Segment segment) {
+//        point p1 = segment.p1;
+//        point p2 = segment.p2;
+//        pushAside(p1);
+//        pushAside(p2);
+//        point p1p2 = point.sub(p2,p1);
+//        point p1c = point.sub(c, p1);
+//        double scalarProd = point.scalarProd(p1p2, p1c);
+//
+//        // Hacer que no sean segmentos extendidos hasta infinito
+//        if (scalarProd <= 0) return;
+//        if (scalarProd >= point.norm(p1p2)) return;
+//        point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
+//        pushAside(projection);
+//    }
 
-        // Hacer que no sean segmentos extendidos hasta infinito
-        if (scalarProd <= 0) return;
-        if (scalarProd >= point.norm(p1p2)) return;
-        point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
-        pushAside(projection);
-    }
+//    public void pushAside(SegmentsManager segmentsManager) {
+//        ArrayList<Segment> list = segmentsManager.list;
+//        for (Segment s : list) {
+//            pushAside(s);
+//        }
+//    }
 
-    public void pushAside(SegmentsManager segmentsManager) {
-        ArrayList<Segment> list = segmentsManager.list;
-        for (Segment s : list) {
-            pushAside(s);
-        }
-    }
-
-    public void pushAside(Polygonal polygon) {
+    public boolean pushAside(Polygonal polygon) {
         point p1 = polygon.center;
-        point p2 = point.mul(0.9,polygon.center);
+        point p2 = point.mul(0.9,polygon.center); // Para controlar hitbox
         pushAside(p1);
         pushAside(p2);
         point p1p2 = point.sub(p2,p1);
@@ -75,28 +75,41 @@ public class Ball {
         double scalarProd = point.scalarProd(p1p2, p1c);
 
         // Hacer que no sean segmentos extendidos hasta infinito
-        if (scalarProd <= 0) return;
-        if (scalarProd >= point.norm(p1p2)) return;
+        if (scalarProd <= 0) return false;
+        if (scalarProd >= point.norm(p1p2)) return false;
         point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
         pushAside(projection);
+
+        return true;
     }
 
     public void pushAside(PolygonalManager polygonsManager) {
         ArrayList<Polygonal> list = polygonsManager.list;
-        for (Polygonal s : list) {
-            pushAside(s);
+        Polygonal p = null;
+
+        for (Polygonal s : polygonsManager.list) {
+            if (pushAside(s)) {
+                // Hay colision
+                // Reinicia bola
+                c = new point(0, -12);
+                thereIsDestination = false;
+                p = s;
+            }
         }
+
+        if (p != null)
+            polygonsManager.list.remove(p);
     }
 
-    public void move(double delta, SegmentsManager segmentsManager) {
-        // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
-        double traversed = r * speedFactor * delta;
-        int steps = (int) (traversed / (r/2.0)) + 1;
-        for (int i = 0; i < steps; i++) {
-            move(delta/steps);
-            pushAside(segmentsManager);
-        }
-    }
+//    public void move(double delta, SegmentsManager segmentsManager) {
+//        // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
+//        double traversed = r * speedFactor * delta;
+//        int steps = (int) (traversed / (r/2.0)) + 1;
+//        for (int i = 0; i < steps; i++) {
+//            move(delta/steps);
+//            pushAside(segmentsManager);
+//        }
+//    }
 
     public void move(double delta, PolygonalManager polygonalManager) {
         // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
