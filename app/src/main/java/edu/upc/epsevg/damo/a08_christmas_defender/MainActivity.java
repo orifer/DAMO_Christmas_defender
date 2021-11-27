@@ -21,6 +21,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
@@ -43,6 +44,7 @@ public class MainActivity extends Activity {
     Bitmap background;
     Bitmap tree;
     Bitmap snowman;
+    int health;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +88,8 @@ public class MainActivity extends Activity {
         ball = new Ball(new point(0, -12), 1);
 
         polygonalManager = new PolygonalManager();
+
+        health = 100;
 
         imageView.setOnTouchListener(new View.OnTouchListener() {
 
@@ -155,7 +159,6 @@ public class MainActivity extends Activity {
                 handler.postDelayed(this, 33);
             }
         }, 33); // 33 ms = 30fps+-
-
         setContentView(linlay);
         drawAll();
 
@@ -253,10 +256,8 @@ public class MainActivity extends Activity {
 //        canvas.drawBitmap(tree, null, new RectF(x,y, x+200, y+200), null);
 
         // HUD
-//        point hudCenter = new point(1,1);
-//        x = (int) world2screen(hudCenter).x;
-//        y = (int) world2screen(hudCenter).y;
-//        canvas.drawBitmap(tree, null, new RectF(1,1, 400, 400), null);
+        drawHUD();
+
 
         // Draw ball
         point c = world2screen(ball.c);
@@ -312,6 +313,24 @@ public class MainActivity extends Activity {
 //        p2 = canonic2screen(cameramanager.world2camera( new point(10, 0) ));
 //
 //        canvas.drawLine((float) p1.x, (float) p1.y, (float) p2.x, (float) p2.y, paint);
+    }
+
+    private void drawHUD() {
+        canvas.save();
+        canvas.rotate(90);
+
+        // Waves
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(100);
+        canvas.drawText("WAVE 1", height/3, -width + 150, paint);
+
+        // Health
+        paint.setTextSize(70);
+        canvas.drawText("Health: " + health, 100, -50, paint);
+
+        canvas.restore();
+        canvas.save();
     }
 
 }
