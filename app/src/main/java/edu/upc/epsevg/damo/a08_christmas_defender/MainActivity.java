@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         paint = new Paint();
 
         // Camara
-        cameramanager = new CameraManager();
+        cameramanager = new CameraManager(width, height);
         cameramanager.center = new point(0, 0);
         cameramanager.right = new point(10, 0);
 
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
             public boolean onTouch(View view, MotionEvent event) {
                 //Log.i("TOUCH", event.toString());
                 point finger = new point(event.getX(), event.getY());
-                point worldFinger = screen2world(finger);
+                point worldFinger = cameramanager.screen2world(finger);
 
                 // Mover bola
                 if (event.getPointerCount() == 1 &&
@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
                             ball.destination = worldFinger;
                         } else {
                             ball.thereIsDestination = false;
-                            cameramanager.touch(screen2canonic(finger));
+                            cameramanager.touch(cameramanager.screen2canonic(finger));
                         }
                         return true;
                     }
@@ -121,7 +121,7 @@ public class MainActivity extends Activity {
                         ball.speedFactor = point.distance(ball.c, ball.destination) * 2;
                         //Log.i("speed: ", Double.toString(ball.speedFactor));
                     } else {
-                        cameramanager.touch(screen2canonic(finger));
+                        cameramanager.touch(cameramanager.screen2canonic(finger));
                     }
 
                     return true;
@@ -133,12 +133,12 @@ public class MainActivity extends Activity {
                 if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
                     cameramanager.touch();
                 } else if (event.getPointerCount() == 1) {
-                    cameramanager.touch(screen2canonic(finger));
+                    cameramanager.touch(cameramanager.screen2canonic(finger));
                     imageView.invalidate();
                 } else {
                     point finger1 = new point(event.getX(0), event.getY(0));
                     point finger2 = new point(event.getX(1), event.getY(1));
-                    cameramanager.touch(screen2canonic(finger1), screen2canonic(finger2));
+                    cameramanager.touch(cameramanager.screen2canonic(finger1), cameramanager.screen2canonic(finger2));
                 }
 
                 return true;
@@ -164,38 +164,9 @@ public class MainActivity extends Activity {
 
     }
 
-    private point canonic2screen(point p) {
-        return new point(
-                p.x * width / 2 + width / 2,
-                height / 2 - p.y * width / 2
-        );
-    }
-
-    private point screen2canonic(point p) {
-        return new point(
-                (p.x - width / 2) / width * 2,
-                -(p.y - height / 2) / width * 2
-        );
-    }
-
-    private point world2screen(point p) {
-        return canonic2screen(cameramanager.world2camera(p));
-    }
-
-    private point screen2world(point p) {
-        return cameramanager.camera2world(screen2canonic(p));
-    }
-
-    private double world2ScreenFactor() {
-        return point.distance(
-                world2screen(new point(0, 0)),
-                world2screen(new point(1, 0))
-        );
-    }
-
     private void drawEnemy(Polygonal polygonal) {
-        int x = (int) world2screen(polygonal.center).x;
-        int y = (int) world2screen(polygonal.center).y;
+        int x = (int) cameramanager.world2screen(polygonal.center).x;
+        int y = (int) cameramanager.world2screen(polygonal.center).y;
         int size = 100;
         canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
         //canvas.drawCircle((int) x, (int) y, (float) polygonal.radius, paint);
@@ -224,8 +195,8 @@ public class MainActivity extends Activity {
 //    }
 
     private void drawSegment(Segment segment) {
-        point p1 = world2screen(segment.p1);
-        point p2 = world2screen(segment.p2);
+        point p1 = cameramanager.world2screen(segment.p1);
+        point p2 = cameramanager.world2screen(segment.p2);
         Path path = new Path();
         path.moveTo((float) p1.x, (float) p1.y);
         path.lineTo((float) p2.x, (float) p2.y);
@@ -240,8 +211,8 @@ public class MainActivity extends Activity {
 
         // Draw background
         point center = new point(0,0);
-        int x = (int) world2screen(center).x - (background.getWidth()/2);
-        int y = (int) world2screen(center).y - (background.getHeight()/2);
+        int x = (int) cameramanager.world2screen(center).x - (background.getWidth()/2);
+        int y = (int) cameramanager.world2screen(center).y - (background.getHeight()/2);
         canvas.drawBitmap(background, x , y, paint);
 
         // Draw enemies
@@ -260,8 +231,8 @@ public class MainActivity extends Activity {
 
 
         // Draw ball
-        point c = world2screen(ball.c);
-        double r = ball.r * world2ScreenFactor();
+        point c = cameramanager.world2screen(ball.c);
+        double r = ball.r * cameramanager.world2ScreenFactor();
 
         // Draw base color
         paint.setColor(Color.WHITE);
@@ -276,8 +247,8 @@ public class MainActivity extends Activity {
 
         // Linea de disparo
         if (ball.holdingDown) {
-            point dest = world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
-            point or = world2screen(ball.c);
+            point dest = cameramanager.world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
+            point or = cameramanager.world2screen(ball.c);
 
             paint.setColor(Color.LTGRAY);
             paint.setStyle(Paint.Style.FILL);

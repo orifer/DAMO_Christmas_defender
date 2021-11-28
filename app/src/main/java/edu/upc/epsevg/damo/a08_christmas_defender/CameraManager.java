@@ -1,15 +1,18 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
 public class CameraManager {
+    int width, height;
     point center, right;
     int numFingers;
     point worldFinger;
     point worldFinger1;
     point worldFinger2;
 
-    public CameraManager() {
+    public CameraManager(int width, int height) {
         center = new point(0,0);
         right = new point(1,0);
+        this.width = width;
+        this.height = height;
     }
 
     public point camera2world(point p) {
@@ -67,6 +70,35 @@ public class CameraManager {
             center = auxC;
             right = auxR;
         }
+    }
+
+    public point canonic2screen(point p) {
+        return new point(
+                p.x * width / 2 + width / 2,
+                height / 2 - p.y * width / 2
+        );
+    }
+
+    public point screen2canonic(point p) {
+        return new point(
+                (p.x - width / 2) / width * 2,
+                -(p.y - height / 2) / width * 2
+        );
+    }
+
+    public point world2screen(point p) {
+        return canonic2screen(world2camera(p));
+    }
+
+    public point screen2world(point p) {
+        return camera2world(screen2canonic(p));
+    }
+
+    public double world2ScreenFactor() {
+        return point.distance(
+                world2screen(new point(0, 0)),
+                world2screen(new point(1, 0))
+        );
     }
 
 
