@@ -40,7 +40,7 @@ public class Ball {
         c = point.sum(p, point.mul(r, point.unitary(pc)));
     }
 
-    public boolean pushAside(Polygonal polygon) {
+    public boolean pushAside(Enemy polygon) {
         point p1 = polygon.center;
         point p2 = point.mul(0.9,polygon.center); // Para controlar hitbox
         pushAside(p1);
@@ -58,11 +58,11 @@ public class Ball {
         return true;
     }
 
-    public void pushAside(PolygonalManager polygonsManager) {
-        ArrayList<Polygonal> list = polygonsManager.list;
-        Polygonal p = null;
+    public void pushAside(EnemyManager polygonsManager) {
+        ArrayList<Enemy> list = polygonsManager.list;
+        Enemy p = null;
 
-        for (Polygonal s : polygonsManager.list) {
+        for (Enemy s : polygonsManager.list) {
             if (pushAside(s)) {
                 // Hay colision
                 // Reinicia bola
@@ -76,13 +76,13 @@ public class Ball {
             polygonsManager.list.remove(p);
     }
 
-    public void move(double delta, PolygonalManager polygonalManager) {
+    public void move(double delta, EnemyManager enemyManager) {
         // Evitar wall tunneling. Nos aseguramos de que no nos movemos mas de r/2
         double traversed = r * speedFactor * delta;
         int steps = (int) (traversed / (r/2.0)) + 1;
         for (int i = 0; i < steps; i++) {
             move(delta/steps);
-            pushAside(polygonalManager);
+            pushAside(enemyManager);
         }
     }
 

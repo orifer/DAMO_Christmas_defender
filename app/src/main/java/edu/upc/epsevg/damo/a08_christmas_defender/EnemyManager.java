@@ -1,28 +1,26 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
-public class PolygonalManager {
+public class EnemyManager {
 
-    ArrayList<Polygonal> list;
+    ArrayList<Enemy> list;
 
-    public PolygonalManager() {
+    public EnemyManager() {
         this.list = new ArrayList<>();
-        generatePolygon();
-        generatePolygon();
-        generatePolygon();
-        generatePolygon();
+        spawnEnemy();
+        spawnEnemy();
+        spawnEnemy();
+        spawnEnemy();
     }
 
-    private void generatePolygon() {
-        Polygonal polygonal = new Polygonal();
-        list.add(polygonal);
+    private void spawnEnemy() {
+        Enemy enemy = new Enemy();
+        list.add(enemy);
     }
 
-    public void movePolygonals(double delta) {
-        for (Polygonal p : list) {
+    public void moveEnemies(double delta) {
+        for (Enemy p : list) {
             double traversed = p.radius * p.speedFactor * delta;
             int steps = (int) (traversed / (p.radius/2.0)) + 1;
 
@@ -32,7 +30,7 @@ public class PolygonalManager {
         }
     }
 
-    public void move(Polygonal p, double delta) {
+    public void move(Enemy p, double delta) {
         double d = point.distance(p.center, p.destination);
         double traversed = p.radius*p.speedFactor*delta;
 

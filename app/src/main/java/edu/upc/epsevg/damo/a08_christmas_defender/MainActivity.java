@@ -6,14 +6,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,11 +17,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import androidx.core.content.ContextCompat;
-
-import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -37,7 +28,7 @@ public class MainActivity extends Activity {
     Paint paint;
     CameraManager cameramanager;
     Ball ball;
-    PolygonalManager polygonalManager;
+    EnemyManager enemyManager;
     Handler handler;
     long time;
 
@@ -65,7 +56,7 @@ public class MainActivity extends Activity {
         cameramanager.right = new point(10, 0);
 
         // Init game elements
-        polygonalManager = new PolygonalManager();
+        enemyManager = new EnemyManager();
         ball = new Ball(new point(0, -12), 1);
         health = 100;
         handleMovement();
@@ -80,8 +71,8 @@ public class MainActivity extends Activity {
                 double delta = (newTime - time) / 1000.0;
                 time = newTime;
 
-                ball.move(delta, polygonalManager);
-                polygonalManager.movePolygonals(delta);
+                ball.move(delta, enemyManager);
+                enemyManager.moveEnemies(delta);
 
                 drawAll();
                 handler.postDelayed(this, 33);
@@ -101,7 +92,7 @@ public class MainActivity extends Activity {
         canvas.drawBitmap(background, x , y, paint);
 
         // Draw enemies
-        for (Polygonal p : polygonalManager.list) {
+        for (Enemy p : enemyManager.list) {
             drawEnemy(p);
         }
 
@@ -139,9 +130,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void drawEnemy(Polygonal polygonal) {
-        int x = (int) cameramanager.world2screen(polygonal.center).x;
-        int y = (int) cameramanager.world2screen(polygonal.center).y;
+    private void drawEnemy(Enemy enemy) {
+        int x = (int) cameramanager.world2screen(enemy.center).x;
+        int y = (int) cameramanager.world2screen(enemy.center).y;
         int size = 100;
         canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
         //canvas.drawCircle((int) x, (int) y, (float) polygonal.radius, paint);
