@@ -51,6 +51,121 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
 
+        manageScreenLayout();
+        paint = new Paint();
+
+        // Load Bitmaps
+        background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
+        tree = BitmapFactory.decodeResource(this.getResources(), R.drawable.tree);
+        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
+
+        // Camera
+        cameramanager = new CameraManager(width, height);
+        cameramanager.center = new point(0, 0);
+        cameramanager.right = new point(10, 0);
+
+        // Init game elements
+        polygonalManager = new PolygonalManager();
+        ball = new Ball(new point(0, -12), 1);
+        health = 100;
+        handleMovement();
+
+        // Timing
+        handler = new Handler();
+        time = System.currentTimeMillis();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                long newTime = System.currentTimeMillis();
+                double delta = (newTime - time) / 1000.0;
+                time = newTime;
+
+                ball.move(delta, polygonalManager);
+                polygonalManager.movePolygonals(delta);
+
+                drawAll();
+                handler.postDelayed(this, 33);
+            }
+        }, 33); // 33 ms = 30fps+-
+        setContentView(linlay);
+        drawAll();
+    }
+
+    private void drawAll() {
+        canvas.drawColor(Color.WHITE);
+
+        // Draw background
+        point center = new point(0,0);
+        int x = (int) cameramanager.world2screen(center).x - (background.getWidth()/2);
+        int y = (int) cameramanager.world2screen(center).y - (background.getHeight()/2);
+        canvas.drawBitmap(background, x , y, paint);
+
+        // Draw enemies
+        for (Polygonal p : polygonalManager.list) {
+            drawEnemy(p);
+        }
+
+        drawHUD();
+        drawBall();
+
+        imageView.invalidate();
+        // Proportional stroke: modulo righ - center
+    }
+
+    private void drawBall() {
+        point c = cameramanager.world2screen(ball.c);
+        double r = ball.r * cameramanager.world2ScreenFactor();
+
+        // Draw base color
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
+
+        // Draw border
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(6);
+        canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
+
+        // Linea de disparo
+        if (ball.holdingDown) {
+            point dest = cameramanager.world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
+            point or = cameramanager.world2screen(ball.c);
+
+            paint.setColor(Color.LTGRAY);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setStrokeWidth(5);
+            canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+        }
+    }
+
+    private void drawEnemy(Polygonal polygonal) {
+        int x = (int) cameramanager.world2screen(polygonal.center).x;
+        int y = (int) cameramanager.world2screen(polygonal.center).y;
+        int size = 100;
+        canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
+        //canvas.drawCircle((int) x, (int) y, (float) polygonal.radius, paint);
+    }
+
+    private void drawHUD() {
+        canvas.save();
+        canvas.rotate(90);
+
+        // Waves
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(100);
+        canvas.drawText("WAVE 1", height/3, -width + 150, paint);
+
+        // Health
+        paint.setTextSize(70);
+        canvas.drawText("Health: " + health, 100, -50, paint);
+
+        canvas.restore();
+        canvas.save();
+    }
+
+    private void manageScreenLayout() {
         // Fullscreen
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -62,11 +177,7 @@ public class MainActivity extends Activity {
         imageView = new ImageView(this);
         linlay.addView(imageView);
 
-        // Load Bitmaps
-        background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
-        tree = BitmapFactory.decodeResource(this.getResources(), R.drawable.tree);
-        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
-
+        // Screen
         Point myPoint = new Point();
         getWindowManager().getDefaultDisplay().getSize(myPoint);
         width = myPoint.x;
@@ -77,20 +188,9 @@ public class MainActivity extends Activity {
         canvas = new Canvas();
         imageView.setImageBitmap(bitmap);
         canvas.setBitmap(bitmap);
+    }
 
-        paint = new Paint();
-
-        // Camara
-        cameramanager = new CameraManager(width, height);
-        cameramanager.center = new point(0, 0);
-        cameramanager.right = new point(10, 0);
-
-        ball = new Ball(new point(0, -12), 1);
-
-        polygonalManager = new PolygonalManager();
-
-        health = 100;
-
+    private void handleMovement() {
         imageView.setOnTouchListener(new View.OnTouchListener() {
 
             @Override
@@ -144,164 +244,6 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-
-        handler = new Handler();
-        time = System.currentTimeMillis();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                long newTime = System.currentTimeMillis();
-                double delta = (newTime - time) / 1000.0;
-                time = newTime;
-                ball.move(delta, polygonalManager);
-                polygonalManager.movePolygonals(delta);
-                drawAll();
-                handler.postDelayed(this, 33);
-            }
-        }, 33); // 33 ms = 30fps+-
-        setContentView(linlay);
-        drawAll();
-
-    }
-
-    private void drawEnemy(Polygonal polygonal) {
-        int x = (int) cameramanager.world2screen(polygonal.center).x;
-        int y = (int) cameramanager.world2screen(polygonal.center).y;
-        int size = 100;
-        canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
-        //canvas.drawCircle((int) x, (int) y, (float) polygonal.radius, paint);
-    }
-
-//    private void drawPolygonal(Polygonal polygonal) {
-//        Path path = new Path();
-//        point[] list = polygonal.list;
-//        point p = canonic2screen(cameramanager.world2camera(list[0]));
-//        path.moveTo((int) p.x, (int) p.y);
-//
-//        for (int i = 1; i < list.length; i++) {
-//            p = canonic2screen(cameramanager.world2camera(list[i]));
-//            path.lineTo((int) p.x, (int) p.y);
-//        }
-//        path.close();
-//
-//        paint.setColor(polygonal.interiorColor);
-//        paint.setStyle(Paint.Style.FILL);
-//        canvas.drawPath(path, paint);
-//
-//        paint.setColor(polygonal.strokeColor);
-//        paint.setStyle(Paint.Style.STROKE);
-//        paint.setStrokeWidth(20);
-//        canvas.drawPath(path, paint);
-//    }
-
-    private void drawSegment(Segment segment) {
-        point p1 = cameramanager.world2screen(segment.p1);
-        point p2 = cameramanager.world2screen(segment.p2);
-        Path path = new Path();
-        path.moveTo((float) p1.x, (float) p1.y);
-        path.lineTo((float) p2.x, (float) p2.y);
-        paint.setColor(Color.YELLOW);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10);
-        canvas.drawPath(path, paint);
-    }
-
-    private void drawAll() {
-        canvas.drawColor(Color.WHITE);
-
-        // Draw background
-        point center = new point(0,0);
-        int x = (int) cameramanager.world2screen(center).x - (background.getWidth()/2);
-        int y = (int) cameramanager.world2screen(center).y - (background.getHeight()/2);
-        canvas.drawBitmap(background, x , y, paint);
-
-        // Draw enemies
-        for (Polygonal p : polygonalManager.list) {
-            drawEnemy(p);
-        }
-
-        // Draw a tree
-//        point treeCenter = new point(1,1);
-//        x = (int) world2screen(treeCenter).x;
-//        y = (int) world2screen(treeCenter).y;
-//        canvas.drawBitmap(tree, null, new RectF(x,y, x+200, y+200), null);
-
-        // HUD
-        drawHUD();
-
-
-        // Draw ball
-        point c = cameramanager.world2screen(ball.c);
-        double r = ball.r * cameramanager.world2ScreenFactor();
-
-        // Draw base color
-        paint.setColor(Color.WHITE);
-        paint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
-
-        // Draw border
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(6);
-        canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
-
-        // Linea de disparo
-        if (ball.holdingDown) {
-            point dest = cameramanager.world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
-            point or = cameramanager.world2screen(ball.c);
-
-            paint.setColor(Color.LTGRAY);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setStrokeWidth(5);
-            canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
-        }
-
-        // Segments
-//        ArrayList<Segment> list = segmentsManager.list;
-//        for (Segment s : list) {
-//            drawSegment(s);
-//        }
-
-//        paint.setColor(Color.YELLOW);
-//        paint.setStyle(Paint.Style.FILL);
-//        canvas.drawCircle(size/2, size/2, 10, paint);
-
-        imageView.invalidate();
-
-        // Proportional stroke: modulo righ - center
-
-        // Rejilla central
-//        paint.setColor(Color.BLACK);
-//        paint.setStyle(Paint.Style.STROKE);
-//        paint.setStrokeWidth(5);
-//
-//        point p1 = canonic2screen(cameramanager.world2camera( new point(0,-10) ));
-//        point p2 = canonic2screen(cameramanager.world2camera( new point(0, 10) ));
-//
-//        canvas.drawLine((float) p1.x, (float) p1.y, (float) p2.x, (float) p2.y, paint);
-//
-//        p1 = canonic2screen(cameramanager.world2camera( new point(-10,0) ));
-//        p2 = canonic2screen(cameramanager.world2camera( new point(10, 0) ));
-//
-//        canvas.drawLine((float) p1.x, (float) p1.y, (float) p2.x, (float) p2.y, paint);
-    }
-
-    private void drawHUD() {
-        canvas.save();
-        canvas.rotate(90);
-
-        // Waves
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setTextSize(100);
-        canvas.drawText("WAVE 1", height/3, -width + 150, paint);
-
-        // Health
-        paint.setTextSize(70);
-        canvas.drawText("Health: " + health, 100, -50, paint);
-
-        canvas.restore();
-        canvas.save();
     }
 
 }
