@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,6 +15,8 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     Canvas canvas;
     Paint paint;
     CameraManager cameramanager;
+    dialogManager dialogManager;
     Ball ball;
     EnemyManager enemyManager;
     Handler handler;
@@ -41,6 +45,7 @@ public class MainActivity extends Activity {
     Bitmap snowman;
     int health;
     double delta;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +67,15 @@ public class MainActivity extends Activity {
         cameramanager.right = new point(cameraZoom, 0);
 
         // Init game elements
+        dialogManager = new dialogManager(MainActivity.this);
         enemyManager = new EnemyManager();
         ball = new Ball(new point(20, 0), 1);
         health = 100;
         handleMovement();
+
+        // Dialogs
+        prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        prefs.edit().putBoolean("isShown", false).apply();
 
         // Timing
         handler = new Handler();
@@ -79,6 +89,7 @@ public class MainActivity extends Activity {
 
                 ball.move(delta, enemyManager);
                 enemyManager.moveEnemies(delta);
+                checkGameStatus();
 
                 drawAll();
                 handler.postDelayed(this, 33);
@@ -86,6 +97,23 @@ public class MainActivity extends Activity {
         }, 33); // 33 ms = 30fps+-
         setContentView(linlay);
         drawAll();
+    }
+
+    private void checkGameStatus() {
+        if(!(prefs.getBoolean("isShown", false))) {
+
+            // LOST
+            if (health == 0) {
+                prefs.edit().putBoolean("isShown", true).apply();
+                dialogManager.showLosePopup();
+            }
+
+            // WIN
+            else if (enemyManager.list.isEmpty() && health > 0) {
+                prefs.edit().putBoolean("isShown", true).apply();
+                dialogManager.showWinPopup();
+            }
+        }
     }
 
     private void drawAll() {
@@ -187,25 +215,6 @@ public class MainActivity extends Activity {
         canvas.setBitmap(bitmap);
     }
 
-    private void showPopup() {
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Delete entry")
-                .setMessage("Are you sure you want to delete this entry?")
-
-                // Specifying a listener allows you to take an action before dismissing the dialog.
-                // The dialog is automatically dismissed when a dialog button is clicked.
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Continue with delete operation
-                    }
-                })
-
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     private void handleMovement() {
         imageView.setOnTouchListener(new View.OnTouchListener() {
@@ -254,8 +263,6 @@ public class MainActivity extends Activity {
                     point finger2 = new point(event.getX(1), event.getY(1));
                     cameramanager.touch(cameramanager.screen2canonic(finger1), cameramanager.screen2canonic(finger2));
                 }
-
-//                showPopup();
 
                 return true;
             }
