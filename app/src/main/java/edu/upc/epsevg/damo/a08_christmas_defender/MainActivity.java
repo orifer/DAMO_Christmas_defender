@@ -1,6 +1,10 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -36,6 +40,7 @@ public class MainActivity extends Activity {
     Bitmap tree;
     Bitmap snowman;
     int health;
+    double delta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +56,14 @@ public class MainActivity extends Activity {
         snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
 
         // Camera
+        int cameraZoom = 30;
         cameramanager = new CameraManager(width, height);
         cameramanager.center = new point(0, 0);
-        cameramanager.right = new point(10, 0);
+        cameramanager.right = new point(cameraZoom, 0);
 
         // Init game elements
         enemyManager = new EnemyManager();
-        ball = new Ball(new point(0, -12), 1);
+        ball = new Ball(new point(20, 0), 1);
         health = 100;
         handleMovement();
 
@@ -68,7 +74,7 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 long newTime = System.currentTimeMillis();
-                double delta = (newTime - time) / 1000.0;
+                delta = (newTime - time) / 1000.0;
                 time = newTime;
 
                 ball.move(delta, enemyManager);
@@ -139,25 +145,25 @@ public class MainActivity extends Activity {
     }
 
     private void drawHUD() {
-        canvas.save();
-        canvas.rotate(90);
-
         // Waves
+        int textSize = 100;
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL);
-        paint.setTextSize(100);
-        canvas.drawText("WAVE 1", height/3, -width + 150, paint);
+        paint.setTextSize(textSize);
+        canvas.drawText("WAVE 1", (float) width/2 - textSize, textSize, paint);
 
         // Health
         paint.setTextSize(70);
-        canvas.drawText("Health: " + health, 100, -50, paint);
+        canvas.drawText("Health: " + health, (float) width/2 - 180, height - 10, paint);
 
-        canvas.restore();
-        canvas.save();
+        // Delta timing
+        paint.setTextSize(30);
+        paint.setColor(Color.RED);
+        canvas.drawText("Δ " + delta , 10, 25, paint);
     }
 
     private void manageScreenLayout() {
-        // Fullscreen
+        // Fullscreen landscape
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -181,19 +187,37 @@ public class MainActivity extends Activity {
         canvas.setBitmap(bitmap);
     }
 
+    private void showPopup() {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Delete entry")
+                .setMessage("Are you sure you want to delete this entry?")
+
+                // Specifying a listener allows you to take an action before dismissing the dialog.
+                // The dialog is automatically dismissed when a dialog button is clicked.
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Continue with delete operation
+                    }
+                })
+
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     private void handleMovement() {
         imageView.setOnTouchListener(new View.OnTouchListener() {
-
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                //Log.i("TOUCH", event.toString());
                 point finger = new point(event.getX(), event.getY());
                 point worldFinger = cameramanager.screen2world(finger);
 
                 // Mover bola
                 if (event.getPointerCount() == 1 &&
-                        (event.getAction() == MotionEvent.ACTION_MOVE ||
-                                event.getAction() == MotionEvent.ACTION_DOWN)) {
+                (event.getAction() == MotionEvent.ACTION_MOVE ||
+                event.getAction() == MotionEvent.ACTION_DOWN)) {
 
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         if (point.distance(worldFinger, ball.c) < 3 * ball.r) {
@@ -210,7 +234,6 @@ public class MainActivity extends Activity {
                     if (ball.thereIsDestination) {
                         ball.destination = point.sum(ball.c, point.mul(-2, point.sub(worldFinger, ball.c)));
                         ball.speedFactor = point.distance(ball.c, ball.destination) * 2;
-                        //Log.i("speed: ", Double.toString(ball.speedFactor));
                     } else {
                         cameramanager.touch(cameramanager.screen2canonic(finger));
                     }
@@ -231,6 +254,8 @@ public class MainActivity extends Activity {
                     point finger2 = new point(event.getX(1), event.getY(1));
                     cameramanager.touch(cameramanager.screen2canonic(finger1), cameramanager.screen2canonic(finger2));
                 }
+
+//                showPopup();
 
                 return true;
             }

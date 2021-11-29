@@ -66,7 +66,7 @@ public class Ball {
             if (pushAside(s)) {
                 // Hay colision
                 // Reinicia bola
-                c = new point(0, -12);
+                c = new point(20, 0);
                 thereIsDestination = false;
                 p = s;
             }

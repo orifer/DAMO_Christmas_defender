@@ -27,6 +27,7 @@ public class CameraManager {
         numFingers = 0;
     }
 
+    // Move camera
     public void touch(point cameraFinger) {
         if (numFingers != 1) {
             numFingers = 1;
@@ -40,7 +41,7 @@ public class CameraManager {
 
         // Restrict camera movement
         point aux = point.sum(center, move);
-        int movementRange = 10;
+        int movementRange = 100;
         if ((aux.x < movementRange && aux.y < movementRange) && (aux.x > -movementRange && aux.y > -movementRange)) {
             center = aux;
             right = point.sum(right, move);
@@ -48,6 +49,7 @@ public class CameraManager {
 
     }
 
+    // Zoom camera
     public void touch(point camerafinger1, point camerafinger2) {
         if (numFingers != 2) {
             numFingers = 2;
@@ -63,8 +65,8 @@ public class CameraManager {
         point auxC = point.reference2world(worldFinger1,worldFinger2, centerbis);
         point auxR = point.reference2world(worldFinger1,worldFinger2, rightbis);
         double distance = point.distance(auxC, auxR);
-        double max = 15;
-        double min = 8;
+        double max = 30;
+        double min = 0;
 
         if (distance < max && distance > min) {
             center = auxC;

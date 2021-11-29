@@ -7,10 +7,12 @@ public class Enemy {
     double speedFactor;
 
     Enemy() {
-        int x = (int) (Math.random() * 20 - 10);
-        int y = (int) (Math.random() * 20 + 20);
+        double dispersioX = Math.random() * 40;
+        double dispersioY = Math.random() * 20;
+        int x = (int) (dispersioX - 70);
+        int y = (int) (dispersioY - 15);
         center = new point(x, y);
-        destination = new point(x, -15);
+        destination = new point(20, y);
         speedFactor = 0.05;
         radius = 50;
     }
