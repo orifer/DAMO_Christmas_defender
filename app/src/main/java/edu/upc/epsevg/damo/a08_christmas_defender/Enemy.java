@@ -5,6 +5,7 @@ public class Enemy {
     point destination;
     double radius;
     double speedFactor;
+    double health;
 
     Enemy() {
         double dispersioX = Math.random() * 40;

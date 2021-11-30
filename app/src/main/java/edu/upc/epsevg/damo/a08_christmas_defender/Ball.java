@@ -40,7 +40,7 @@ public class Ball {
         c = point.sum(p, point.mul(r, point.unitary(pc)));
     }
 
-    public boolean pushAside(Enemy polygon) {
+    public void pushAside(Enemy polygon) {
         point p1 = polygon.center;
         point p2 = point.mul(0.9,polygon.center); // Para controlar hitbox
         pushAside(p1);
@@ -50,30 +50,35 @@ public class Ball {
         double scalarProd = point.scalarProd(p1p2, p1c);
 
         // Hacer que no sean segmentos extendidos hasta infinito
-        if (scalarProd <= 0) return false;
-        if (scalarProd >= point.norm(p1p2)) return false;
+        if (scalarProd <= 0) return;
+        if (scalarProd >= point.norm(p1p2)) return;
         point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
         pushAside(projection);
-
-        return true;
     }
 
-    public void pushAside(EnemyManager polygonsManager) {
-        ArrayList<Enemy> list = polygonsManager.list;
+    // Todo: Mover a physicsManager
+    public void pushAside(EnemyManager enemyManager) {
+        ArrayList<Enemy> list = enemyManager.list;
         Enemy p = null;
 
-        for (Enemy s : polygonsManager.list) {
-            if (pushAside(s)) {
-                // Hay colision
-                // Reinicia bola
-                c = new point(20, 0);
-                thereIsDestination = false;
-                p = s;
+        for (Enemy e : enemyManager.list) {
+            if (point.distance(e.center, this.c) < this.r*2.5) {
+                hit(e);
+                p = e;
             }
         }
 
         if (p != null)
-            polygonsManager.list.remove(p);
+            enemyManager.list.remove(p);
+    }
+
+    public void hit(Enemy e) {
+
+        // Reinicia bola
+        c = new point(20, 0);
+        thereIsDestination = false;
+
+
     }
 
     public void move(double delta, EnemyManager enemyManager) {
