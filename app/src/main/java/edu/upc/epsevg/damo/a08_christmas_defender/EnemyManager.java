@@ -19,7 +19,7 @@ public class EnemyManager {
     // Things to do every tick
     public void onEveryTick(double delta) {
         for (Enemy e : list) {
-            move(e, delta);
+            moveEnemies(e, delta);
             attack(e, delta);
         }
     }
@@ -36,28 +36,22 @@ public class EnemyManager {
         }
     }
 
-//    public void moveEnemies(double delta) {
-//        for (Enemy p : list) {
-//            double traversed = e.radius * e.speedFactor * delta;
-//            int steps = (int) (traversed / (e.radius/2.0)) + 1;
-//
-//            for (int i = 0; i < steps; i++) {
-//                move(p, delta/steps);
-//            }
-//        }
-//    }
+    public void moveEnemies(Enemy e, double delta) {
+        double traversed = e.radius * e.speedFactor * delta;
+        int steps = (int) (traversed / (e.radius/2.0)) + 1;
 
-    public void move(Enemy e, double delta) {
-        double d = point.distance(e.center, e.destination);
-        double traversed = e.radius*e.speedFactor*delta;
+        for (int i = 0; i < steps; i++) {
+            double d = point.distance(e.center, e.destination);
+            double traversedStep = e.radius * e.speedFactor * (delta/steps);
 
-        if (d < traversed) {
-            e.center = e.destination;
-            return;
+            if (d < traversedStep) {
+                e.center = e.destination;
+                return;
+            }
+
+            point direction = point.unitary( point.sub(e.destination, e.center) );
+            e.center = point.sum(e.center,point.mul(traversedStep, direction));
         }
-
-        point direction = point.unitary( point.sub(e.destination, e.center) );
-        e.center = point.sum(e.center,point.mul(traversed, direction));
     }
 
 }
