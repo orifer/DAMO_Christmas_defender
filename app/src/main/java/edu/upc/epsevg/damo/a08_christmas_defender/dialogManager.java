@@ -37,7 +37,7 @@ public class dialogManager {
     public void showLosePopup() {
         new AlertDialog.Builder(context)
                 .setTitle("You lost!")
-                .setMessage("Are you sure you are not retarded?")
+                .setMessage("Christmas is over, you made it")
 
                 // Specifying a listener allows you to take an action before dismissing the dialog.
                 // The dialog is automatically dismissed when a dialog button is clicked.

@@ -25,6 +25,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class MainActivity extends Activity {
 
     int width, height, size;
@@ -43,7 +46,7 @@ public class MainActivity extends Activity {
     Bitmap background;
     Bitmap tree;
     Bitmap snowman;
-    int health;
+    static double health;
     double delta;
     SharedPreferences prefs;
 
@@ -88,7 +91,7 @@ public class MainActivity extends Activity {
                 time = newTime;
 
                 ball.move(delta, enemyManager);
-                enemyManager.moveEnemies(delta);
+                enemyManager.onEveryTick(delta);
                 checkGameStatus();
 
                 drawAll();
@@ -183,7 +186,7 @@ public class MainActivity extends Activity {
 
         // Health
         paint.setTextSize(70);
-        canvas.drawText("Health: " + health, (float) width/2 - 180, height - 10, paint);
+        canvas.drawText("Health: " + new BigDecimal(health).setScale(2, RoundingMode.HALF_UP).doubleValue(), (float) width/2 - 180, height - 10, paint);
 
         // Delta timing
         paint.setTextSize(30);
@@ -214,6 +217,12 @@ public class MainActivity extends Activity {
         canvas = new Canvas();
         imageView.setImageBitmap(bitmap);
         canvas.setBitmap(bitmap);
+    }
+
+    // Algo temporal
+    static void takeDamage(double damage) {
+        health -= damage;
+        if (health < 0) health = 0;
     }
 
     @SuppressLint("ClickableViewAccessibility")

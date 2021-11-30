@@ -6,6 +6,7 @@ public class Enemy {
     double radius;
     double speedFactor;
     double health;
+    int attackDamage;
 
     Enemy() {
         double dispersioX = Math.random() * 40;
@@ -13,9 +14,11 @@ public class Enemy {
         int x = (int) (dispersioX - 70);
         int y = (int) (dispersioY - 15);
         center = new point(x, y);
-        destination = new point(20, y);
-        speedFactor = 0.05;
+        destination = new point(15, y);
+        speedFactor = 0.2;
         radius = 50;
+        health = 10;
+        attackDamage = 1;
     }
 
 }
