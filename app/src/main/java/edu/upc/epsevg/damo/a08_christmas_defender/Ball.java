@@ -75,7 +75,7 @@ public class Ball {
     public void hit(Enemy e) {
 
         // Reinicia bola
-        c = new point(20, 0);
+        c = new point(22.5, 0);
         thereIsDestination = false;
 
 

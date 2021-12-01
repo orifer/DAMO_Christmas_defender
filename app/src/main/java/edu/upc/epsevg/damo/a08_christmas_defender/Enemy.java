@@ -14,7 +14,7 @@ public class Enemy {
         int x = (int) (dispersioX - 70);
         int y = (int) (dispersioY - 15);
         center = new point(x, y);
-        destination = new point(15, y);
+        destination = new point(12, y);
         speedFactor = 0.2;
         radius = 50;
         health = 10;

@@ -60,7 +60,6 @@ public class MainActivity extends Activity {
 
         // Load Bitmaps
         background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
-        tree = BitmapFactory.decodeResource(this.getResources(), R.drawable.tree);
         snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
 
         // Camera
@@ -72,7 +71,7 @@ public class MainActivity extends Activity {
         // Init game elements
         dialogManager = new dialogManager(MainActivity.this);
         enemyManager = new EnemyManager();
-        ball = new Ball(new point(20, 0), 1);
+        ball = new Ball(new point(22.5, 0), 1);
         health = 100;
         handleMovement();
 
@@ -155,16 +154,25 @@ public class MainActivity extends Activity {
         paint.setStrokeWidth(6);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
 
-        // Linea de disparo
-        if (ball.holdingDown) {
+        // Aim line
+        if (ball.destination != null) {
             point dest = cameramanager.world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
             point or = cameramanager.world2screen(ball.c);
 
-            paint.setColor(Color.LTGRAY);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setStrokeWidth(5);
-            canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+            if (ball.holdingDown) {
+                paint.setColor(Color.LTGRAY);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setStrokeWidth(5);
+                canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
+            }
+
+            // Draw strings
+            paint.setColor(Color.BLACK);
+            paint.setStrokeWidth(12);
+            canvas.drawLine((float) or.x, (float) or.y, (float) or.x, (float) or.y + 100, paint);
+            canvas.drawLine((float) or.x, (float) or.y, (float) or.x, (float) or.y - 100, paint);
         }
+
     }
 
     // Todo: Moverlo a clase enemy o enemymanager
