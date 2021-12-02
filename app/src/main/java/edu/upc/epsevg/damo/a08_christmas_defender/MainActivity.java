@@ -92,6 +92,7 @@ public class MainActivity extends Activity {
 
                 ball.move(delta, enemyManager);
                 enemyManager.onEveryTick(delta);
+                ball.onEveryTick(delta);
                 checkGameStatus();
 
                 drawAll();
@@ -154,25 +155,19 @@ public class MainActivity extends Activity {
         paint.setStrokeWidth(6);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
 
-        // Aim line
-        if (ball.destination != null) {
-            point dest = cameramanager.world2screen(point.sum(ball.c, point.mul(0.3, point.sub(ball.destination, ball.c))));
+        // Draw strings
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(10);
+        if (point.distance(constants.BALL_SPAWN, ball.c) < 8) {
             point or = cameramanager.world2screen(ball.c);
-
-            if (ball.holdingDown) {
-                paint.setColor(Color.LTGRAY);
-                paint.setStyle(Paint.Style.FILL);
-                paint.setStrokeWidth(5);
-                canvas.drawLine((float) or.x, (float) or.y, (float) dest.x, (float) dest.y, paint);
-            }
-
-            // Draw strings
-            paint.setColor(Color.BLACK);
-            paint.setStrokeWidth(10);
             point top = cameramanager.world2screen(new point(20.3, 2.8));
             point bottom = cameramanager.world2screen(new point(20.8, -2.5));
             canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
             canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
+        } else {
+            point top = cameramanager.world2screen(new point(20.3, 2.8));
+            point bottom = cameramanager.world2screen(new point(20.8, -2.5));
+            canvas.drawLine((float) bottom.x, (float) bottom.y, (float) top.x, (float) top.y, paint);
         }
     }
 
@@ -239,10 +234,14 @@ public class MainActivity extends Activity {
                 event.getAction() == MotionEvent.ACTION_DOWN)) {
 
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                        // Move ball
                         if (point.distance(worldFinger, ball.c) < 3 * ball.r) {
                             ball.holdingDown = true;
                             ball.thereIsDestination = true;
                             ball.destination = worldFinger;
+
+                        // Move camera
                         } else {
                             ball.thereIsDestination = false;
                             cameramanager.touch(cameramanager.screen2canonic(finger));
@@ -250,9 +249,15 @@ public class MainActivity extends Activity {
                         return true;
                     }
 
+                    // Move ball
                     if (ball.thereIsDestination) {
-                        ball.destination = point.sum(ball.c, point.mul(-2, point.sub(worldFinger, ball.c)));
-                        ball.speedFactor = point.distance(ball.c, ball.destination) * 2;
+                        ball.destination = point.sum(ball.c, point.mul(10, point.sub(constants.BALL_SPAWN, ball.c)));
+                        ball.speedFactor = point.distance(ball.c, ball.destination) * 0.5;
+
+                        if (point.distance(constants.BALL_SPAWN, worldFinger) < 8)
+                            ball.c = worldFinger;
+
+                    // Move camera
                     } else {
                         cameramanager.touch(cameramanager.screen2canonic(finger));
                     }
@@ -262,7 +267,7 @@ public class MainActivity extends Activity {
 
                 ball.holdingDown = false;
 
-                // Mover camara
+                // Move camera and zoom
                 if ((event.getPointerCount() != 1 && event.getPointerCount() != 2) || event.getAction() != MotionEvent.ACTION_MOVE) {
                     cameramanager.touch();
                 } else if (event.getPointerCount() == 1) {

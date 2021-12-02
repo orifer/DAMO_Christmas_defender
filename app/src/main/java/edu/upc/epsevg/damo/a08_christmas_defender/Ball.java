@@ -1,5 +1,7 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class Ball {
@@ -26,6 +28,11 @@ public class Ball {
         holdingDown = false;
     }
 
+    // Things to do every tick
+    public void onEveryTick(double delta) {
+
+    }
+
     public void move(double delta) {
         if (holdingDown || !thereIsDestination) return;
         double d = point.distance(c, destination);
@@ -33,6 +40,7 @@ public class Ball {
 
         if (d < traversed) {
             c = destination;
+            restart();
             return;
         }
 
@@ -71,7 +79,7 @@ public class Ball {
 
         for (Enemy e : enemyManager.list) {
             if (point.distance(e.center, this.c) < this.r*2.5) {
-                hit(e);
+                restart();
                 p = e;
             }
         }
@@ -80,13 +88,10 @@ public class Ball {
             enemyManager.list.remove(p);
     }
 
-    public void hit(Enemy e) {
-
-        // Reinicia bola
+    // Return the ball to the start
+    public void restart() {
         c = new point(22.5, 0);
         thereIsDestination = false;
-
-
     }
 
     public void move(double delta, EnemyManager enemyManager) {
