@@ -59,19 +59,20 @@ public class MainActivity extends Activity {
         paint = new Paint();
 
         // Load Bitmaps
-        background = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
+        Bitmap background_base = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
+        background = Bitmap.createScaledBitmap(background_base, (int) (width*1.5), (int) (height*1.5), false);
         snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
 
         // Camera
         int cameraZoom = 30;
         cameramanager = new CameraManager(width, height);
-        cameramanager.center = new point(0, 0);
+        cameramanager.center = constants.CENTER;
         cameramanager.right = new point(cameraZoom, 0);
 
         // Init game elements
         dialogManager = new dialogManager(MainActivity.this);
         enemyManager = new EnemyManager();
-        ball = new Ball(new point(22.5, 0), 1);
+        ball = new Ball();
         health = 100;
         handleMovement();
 
@@ -122,9 +123,8 @@ public class MainActivity extends Activity {
         canvas.drawColor(Color.WHITE);
 
         // Draw background
-        point center = new point(0,0);
-        int x = (int) cameramanager.world2screen(center).x - (background.getWidth()/2);
-        int y = (int) cameramanager.world2screen(center).y - (background.getHeight()/2);
+        int x = (int) (cameramanager.world2screen(constants.CENTER).x - ((int) (width*1.5)/2));
+        int y = (int) (cameramanager.world2screen(constants.CENTER).y - ((int) (height*1.5)/2));
         canvas.drawBitmap(background, x , y, paint);
 
         // Draw enemies
@@ -168,9 +168,11 @@ public class MainActivity extends Activity {
 
             // Draw strings
             paint.setColor(Color.BLACK);
-            paint.setStrokeWidth(12);
-            canvas.drawLine((float) or.x, (float) or.y, (float) or.x, (float) or.y + 100, paint);
-            canvas.drawLine((float) or.x, (float) or.y, (float) or.x, (float) or.y - 100, paint);
+            paint.setStrokeWidth(10);
+            point top = cameramanager.world2screen(new point(20.3, 2.8));
+            point bottom = cameramanager.world2screen(new point(20.8, -2.5));
+            canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
+            canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
         }
 
     }

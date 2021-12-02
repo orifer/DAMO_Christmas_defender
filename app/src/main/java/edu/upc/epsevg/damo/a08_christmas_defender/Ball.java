@@ -10,11 +10,19 @@ public class Ball {
     double speedFactor;
     boolean holdingDown;
 
+    public Ball() {
+        c = constants.BALL_SPAWN;
+        r = 1;
+        speedFactor = 10;
+        thereIsDestination = false;
+        holdingDown = false;
+    }
+
     public Ball(point inc, double inr) {
         c = inc;
         r = inr;
-        thereIsDestination = false;
         speedFactor = 10;
+        thereIsDestination = false;
         holdingDown = false;
     }
 
