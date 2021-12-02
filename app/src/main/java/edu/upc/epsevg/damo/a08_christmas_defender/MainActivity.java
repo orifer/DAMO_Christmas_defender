@@ -128,8 +128,8 @@ public class MainActivity extends Activity {
         canvas.drawBitmap(background, x , y, paint);
 
         // Draw enemies
-        for (Enemy p : enemyManager.list) {
-            drawEnemy(p);
+        for (Enemy e : enemyManager.list) {
+            enemyManager.drawEnemy(canvas, cameramanager, snowman, e);
         }
 
         drawHUD();
@@ -174,16 +174,6 @@ public class MainActivity extends Activity {
             canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
             canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
         }
-
-    }
-
-    // Todo: Moverlo a clase enemy o enemymanager
-    private void drawEnemy(Enemy enemy) {
-        int x = (int) cameramanager.world2screen(enemy.center).x;
-        int y = (int) cameramanager.world2screen(enemy.center).y;
-        int size = 100;
-        canvas.drawBitmap(snowman, null, new RectF(x-size,y-size, x+size, y+size), null);
-        //canvas.drawCircle((int) x, (int) y, (float) enemy.radius, paint);
     }
 
     private void drawHUD() {

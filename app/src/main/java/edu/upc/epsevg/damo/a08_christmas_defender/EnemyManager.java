@@ -1,6 +1,8 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
-import android.os.Handler;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.RectF;
 
 import java.util.ArrayList;
 
@@ -27,6 +29,13 @@ public class EnemyManager {
     private void spawnEnemy() {
         Enemy enemy = new Enemy();
         list.add(enemy);
+    }
+
+    public void drawEnemy(Canvas canvas, CameraManager cameramanager, Bitmap bitmap, Enemy enemy) {
+        int x = (int) cameramanager.world2screen(enemy.center).x;
+        int y = (int) cameramanager.world2screen(enemy.center).y;
+        int size = 100;
+        canvas.drawBitmap(bitmap, null, new RectF(x-size,y-size, x+size, y+size), null);
     }
 
     private void attack(Enemy e, double delta) {

@@ -41,8 +41,9 @@ public class CameraManager {
 
         // Restrict camera movement
         point aux = point.sum(center, move);
-        int movementRange = 100;
-        if ((aux.x < movementRange && aux.y < movementRange) && (aux.x > -movementRange && aux.y > -movementRange)) {
+        double movementRangeX = 15;
+        double movementRangeY = 8.5;
+        if ((aux.x < movementRangeX && aux.y < movementRangeY) && (aux.x > -movementRangeX && aux.y > -movementRangeY)) {
             center = aux;
             right = point.sum(right, move);
         }
@@ -51,27 +52,27 @@ public class CameraManager {
 
     // Zoom camera
     public void touch(point camerafinger1, point camerafinger2) {
-        if (numFingers != 2) {
-            numFingers = 2;
-            worldFinger1 = camera2world(camerafinger1);
-            worldFinger2 = camera2world(camerafinger2);
-            return;
-        }
-
-        point centerbis = point.world2reference(camerafinger1, camerafinger2, new point(0,0));
-        point rightbis = point.world2reference(camerafinger1, camerafinger2, new point(1,0));
-
-        // Restrict camera movement
-        point auxC = point.reference2world(worldFinger1,worldFinger2, centerbis);
-        point auxR = point.reference2world(worldFinger1,worldFinger2, rightbis);
-        double distance = point.distance(auxC, auxR);
-        double max = 30;
-        double min = 0;
-
-        if (distance < max && distance > min) {
-            center = auxC;
-            right = auxR;
-        }
+//        if (numFingers != 2) {
+//            numFingers = 2;
+//            worldFinger1 = camera2world(camerafinger1);
+//            worldFinger2 = camera2world(camerafinger2);
+//            return;
+//        }
+//
+//        point centerbis = point.world2reference(camerafinger1, camerafinger2, new point(0,0));
+//        point rightbis = point.world2reference(camerafinger1, camerafinger2, new point(1,0));
+//
+//        // Restrict camera movement
+//        point auxC = point.reference2world(worldFinger1,worldFinger2, centerbis);
+//        point auxR = point.reference2world(worldFinger1,worldFinger2, rightbis);
+//        double distance = point.distance(auxC, auxR);
+//        double max = 30;
+//        double min = -30;
+//
+//        if (distance < max && distance > min) {
+//            center = auxC;
+//            right = auxR;
+//        }
     }
 
     public point canonic2screen(point p) {
