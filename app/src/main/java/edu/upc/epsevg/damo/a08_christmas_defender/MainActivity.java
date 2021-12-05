@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
@@ -33,22 +34,21 @@ public class MainActivity extends Activity {
     int width, height, size;
     LinearLayout linlay;
     ImageView imageView;
-    Bitmap bitmap;
+    Handler handler;
     Canvas canvas;
     Paint paint;
+
     CameraManager cameramanager;
     dialogManager dialogManager;
-    Ball ball;
     EnemyManager enemyManager;
-    Handler handler;
-    long time;
 
-    Bitmap background;
-    Bitmap tree;
-    Bitmap snowman;
+    Ball ball;
+    Bitmap background, slingshot, snowman;
+    SharedPreferences prefs;
+    point worldFinger;
     static double health;
     double delta;
-    SharedPreferences prefs;
+    long time;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +57,7 @@ public class MainActivity extends Activity {
 
         manageScreenLayout();
         paint = new Paint();
-
-        // Load Bitmaps
-        Bitmap background_base = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
-        background = Bitmap.createScaledBitmap(background_base, (int) (width*1.5), (int) (height*1.5), false);
-        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
+        loadBitmaps();
 
         // Camera
         int cameraZoom = 30;
@@ -101,6 +97,14 @@ public class MainActivity extends Activity {
         }, 33); // 33 ms = 30fps+-
         setContentView(linlay);
         drawAll();
+    }
+
+    private void loadBitmaps() {
+        Bitmap background_base = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
+        background = Bitmap.createScaledBitmap(background_base, (int) (width*1.5), (int) (height*1.5), false);
+
+        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
+        slingshot = BitmapFactory.decodeResource(this.getResources(), R.drawable.slingshoot);
     }
 
     private void checkGameStatus() {
@@ -144,6 +148,29 @@ public class MainActivity extends Activity {
         point c = cameramanager.world2screen(ball.c);
         double r = ball.r * cameramanager.world2ScreenFactor();
 
+        // Draw slingshot base
+        point p = cameramanager.world2screen(constants.BALL_SPAWN);
+        Bitmap rotatedSlingshot = rotateBitmap(slingshot, (float) -point.angle(constants.BALL_SPAWN, ball.c));
+        canvas.drawBitmap(rotatedSlingshot, (int) p.x - (rotatedSlingshot.getWidth()/2) , (int) p.y - (rotatedSlingshot.getHeight()/2), paint);
+
+        // Draw strings
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(10);
+        if ((point.distance(constants.BALL_SPAWN, ball.c) < 8) && (worldFinger != null)) {
+            point or = cameramanager.world2screen(ball.c);
+            point u = point.orthogonal(point.unitary(point.sub(worldFinger,constants.BALL_SPAWN)));
+            double slingshotRadius = 2;
+            point top = cameramanager.world2screen( point.sum(point.mul(slingshotRadius,u) , constants.BALL_SPAWN) );
+            point bottom = cameramanager.world2screen( point.sum(point.mul(-slingshotRadius,u) , constants.BALL_SPAWN) );
+
+            canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
+            canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
+        } else {
+            point top = cameramanager.world2screen(point.sum(constants.BALL_SPAWN, new point(0, 2.5)));
+            point bottom = cameramanager.world2screen(point.sum(constants.BALL_SPAWN, new point(0, -2.5)));
+            canvas.drawLine((float) bottom.x, (float) bottom.y, (float) top.x, (float) top.y, paint);
+        }
+
         // Draw base color
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.FILL);
@@ -154,21 +181,6 @@ public class MainActivity extends Activity {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(6);
         canvas.drawCircle((int) c.x, (int) c.y, (float) r, paint);
-
-        // Draw strings
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(10);
-        if (point.distance(constants.BALL_SPAWN, ball.c) < 8) {
-            point or = cameramanager.world2screen(ball.c);
-            point top = cameramanager.world2screen(new point(20.3, 2.8));
-            point bottom = cameramanager.world2screen(new point(20.8, -2.5));
-            canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
-            canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
-        } else {
-            point top = cameramanager.world2screen(new point(20.3, 2.8));
-            point bottom = cameramanager.world2screen(new point(20.8, -2.5));
-            canvas.drawLine((float) bottom.x, (float) bottom.y, (float) top.x, (float) top.y, paint);
-        }
     }
 
     private void drawHUD() {
@@ -208,7 +220,7 @@ public class MainActivity extends Activity {
         height = myPoint.y;
         size = width;
         imageView.setLayoutParams(new LinearLayout.LayoutParams(width, height));
-        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         canvas = new Canvas();
         imageView.setImageBitmap(bitmap);
         canvas.setBitmap(bitmap);
@@ -220,13 +232,20 @@ public class MainActivity extends Activity {
         if (health < 0) health = 0;
     }
 
+    private static Bitmap rotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void handleMovement() {
         imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 point finger = new point(event.getX(), event.getY());
-                point worldFinger = cameramanager.screen2world(finger);
+                worldFinger = cameramanager.screen2world(finger);
 
                 // Mover bola
                 if (event.getPointerCount() == 1 &&
@@ -254,7 +273,7 @@ public class MainActivity extends Activity {
                         ball.destination = point.sum(ball.c, point.mul(10, point.sub(constants.BALL_SPAWN, ball.c)));
                         ball.speedFactor = point.distance(ball.c, ball.destination) * 0.5;
 
-                        if (point.distance(constants.BALL_SPAWN, worldFinger) < 8)
+                        if (point.distance(constants.BALL_SPAWN, worldFinger) < 7)
                             ball.c = worldFinger;
 
                     // Move camera

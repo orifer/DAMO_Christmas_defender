@@ -83,7 +83,7 @@ public class Ball {
         Enemy p = null;
 
         for (Enemy e : enemyManager.list) {
-            if (point.distance(e.center, this.c) < this.r*2.5) {
+            if (point.distance(e.center, this.c) < this.r*1) {
                 restart();
                 p = e;
             }
@@ -95,7 +95,7 @@ public class Ball {
 
     // Return the ball to the start
     public void restart() {
-        c = new point(22.5, 0);
+        c = constants.BALL_SPAWN;
         r = 1;
         thereIsDestination = false;
     }

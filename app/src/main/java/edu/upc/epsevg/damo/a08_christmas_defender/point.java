@@ -1,5 +1,7 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
+import android.graphics.Matrix;
+
 public class point {
     double x,y;
 
@@ -69,5 +71,9 @@ public class point {
 
     public static double distance(point p1, point p2) {
         return abs(sub(p1,p2));
+    }
+
+    public static double angle(point p1, point p2) {
+        return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
     }
 }
