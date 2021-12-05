@@ -30,7 +30,12 @@ public class Ball {
 
     // Things to do every tick
     public void onEveryTick(double delta) {
-
+        // Height animation
+        if (thereIsDestination && !holdingDown)
+            if (point.distance(c,destination) < point.distance(c,constants.BALL_SPAWN))
+                r -= 0.05;
+            else
+                r += 0.05;
     }
 
     public void move(double delta) {
@@ -91,6 +96,7 @@ public class Ball {
     // Return the ball to the start
     public void restart() {
         c = new point(22.5, 0);
+        r = 1;
         thereIsDestination = false;
     }
 
