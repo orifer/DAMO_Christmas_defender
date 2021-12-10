@@ -3,12 +3,16 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class EnemyManager {
 
     ArrayList<Enemy> list;
+    int remaining;
+    int enemiesOnScreen;
+    int maxEnemiesOnScreen = 8;
 
     public EnemyManager() {
         this.list = new ArrayList<>();
@@ -21,11 +25,20 @@ public class EnemyManager {
             moveEnemies(e, delta);
             attack(e, delta);
         }
+        spawnEnemies();
+    }
+
+    private void spawnEnemies() {
+        enemiesOnScreen = list.size();
+
+        if (remaining > 0 && enemiesOnScreen < maxEnemiesOnScreen) {
+            list.add(new Enemy());
+            remaining--;
+        }
     }
 
     public void spawnEnemies(int enemies) {
-        for (int i = 0; i < enemies; i++)
-            list.add(new Enemy());
+        remaining = enemies;
     }
 
     public void drawEnemy(Canvas canvas, CameraManager cameramanager, Bitmap bitmap, Enemy enemy) {
