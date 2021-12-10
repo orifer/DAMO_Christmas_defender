@@ -49,6 +49,10 @@ public class MainActivity extends Activity {
     static double health;
     double delta;
     long time;
+    int wave;
+
+    enum GameStatus{RUNNING, WON, WAITING, LOST}
+    GameStatus gameStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +70,12 @@ public class MainActivity extends Activity {
         cameramanager.right = new point(cameraZoom, 0);
 
         // Init game elements
+        gameStatus = GameStatus.RUNNING;
         dialogManager = new dialogManager(MainActivity.this);
         enemyManager = new EnemyManager();
         ball = new Ball();
         health = 100;
+        wave = 1;
         handleMovement();
 
         // Dialogs
@@ -96,7 +102,6 @@ public class MainActivity extends Activity {
             }
         }, 33); // 33 ms = 30fps+-
         setContentView(linlay);
-        drawAll();
     }
 
     private void loadBitmaps() {
@@ -108,19 +113,43 @@ public class MainActivity extends Activity {
     }
 
     private void checkGameStatus() {
-        if(!(prefs.getBoolean("isShown", false))) {
+        switch (gameStatus) {
 
-            // LOST
-            if (health == 0) {
+            // Playing the game normally
+            case RUNNING:
+                // Check if the player lost the wave
+                if (health == 0)
+                    gameStatus = GameStatus.LOST;
+
+                // Check if you completed the wave
+                if (enemyManager.list.isEmpty() && health > 0)
+                    gameStatus = GameStatus.WON;
+                break;
+
+
+            // You passed this wave, wait for the next one
+            case WON:
+                // Spawn the next wave after the countdown and puts you to wait
+                gameStatus = GameStatus.WAITING;
+                wave++;
+                handler.postDelayed(() -> {
+                    enemyManager.spawnEnemies(5);
+                    gameStatus = GameStatus.RUNNING;
+                }, 6000);
+                break;
+
+
+            // You lost haha
+            case LOST:
+                // Show the shame dialog
                 prefs.edit().putBoolean("isShown", true).apply();
                 dialogManager.showLosePopup();
-            }
+                break;
 
-            // WIN
-            else if (enemyManager.list.isEmpty() && health > 0) {
-                prefs.edit().putBoolean("isShown", true).apply();
-                dialogManager.showWinPopup();
-            }
+
+            // Waiting for the next wave to spawn
+            case WAITING:
+                break;
         }
     }
 
@@ -189,7 +218,7 @@ public class MainActivity extends Activity {
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL);
         paint.setTextSize(textSize);
-        canvas.drawText("WAVE 1", (float) width/2 - textSize, textSize, paint);
+        canvas.drawText("WAVE " + wave, (float) width/2 - textSize, textSize, paint);
 
         // Health
         paint.setTextSize(70);

@@ -12,10 +12,7 @@ public class EnemyManager {
 
     public EnemyManager() {
         this.list = new ArrayList<>();
-        spawnEnemy();
-        spawnEnemy();
-        spawnEnemy();
-        spawnEnemy();
+        spawnEnemies(5);
     }
 
     // Things to do every tick
@@ -26,9 +23,9 @@ public class EnemyManager {
         }
     }
 
-    private void spawnEnemy() {
-        Enemy enemy = new Enemy();
-        list.add(enemy);
+    public void spawnEnemies(int enemies) {
+        for (int i = 0; i < enemies; i++)
+            list.add(new Enemy());
     }
 
     public void drawEnemy(Canvas canvas, CameraManager cameramanager, Bitmap bitmap, Enemy enemy) {
