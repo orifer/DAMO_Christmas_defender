@@ -142,8 +142,10 @@ public class MainActivity extends Activity {
             // You lost haha
             case LOST:
                 // Show the shame dialog
-                prefs.edit().putBoolean("isShown", true).apply();
-                dialogManager.showLosePopup();
+                if(!(prefs.getBoolean("isShown", false))) {
+                    prefs.edit().putBoolean("isShown", true).apply();
+                    dialogManager.showLosePopup();
+                }
                 break;
 
 
