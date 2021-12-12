@@ -1,5 +1,6 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,11 +26,11 @@ public class dialogManager {
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         prefs.edit().putBoolean("isShown", false).apply();
+
+                        // Return to main menu
+                        ((Activity) context).finish();
                     }
                 })
-
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }

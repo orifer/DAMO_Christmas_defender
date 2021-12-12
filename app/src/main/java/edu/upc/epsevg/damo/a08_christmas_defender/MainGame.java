@@ -2,10 +2,7 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,12 +10,11 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -29,7 +25,7 @@ import android.widget.LinearLayout;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class MainActivity extends Activity {
+public class MainGame extends Activity {
 
     int width, height, size;
     LinearLayout linlay;
@@ -71,7 +67,7 @@ public class MainActivity extends Activity {
 
         // Init game elements
         gameStatus = GameStatus.RUNNING;
-        dialogManager = new dialogManager(MainActivity.this);
+        dialogManager = new dialogManager(MainGame.this);
         enemyManager = new EnemyManager();
         ball = new Ball();
         health = 100;
@@ -79,7 +75,7 @@ public class MainActivity extends Activity {
         handleMovement();
 
         // Dialogs
-        prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        prefs = PreferenceManager.getDefaultSharedPreferences(MainGame.this);
         prefs.edit().putBoolean("isShown", false).apply();
 
         // Timing
@@ -233,8 +229,10 @@ public class MainActivity extends Activity {
     }
 
     private void manageScreenLayout() {
-        // Fullscreen landscape
+        // Remove title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        // Remove notification bar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // Main layout

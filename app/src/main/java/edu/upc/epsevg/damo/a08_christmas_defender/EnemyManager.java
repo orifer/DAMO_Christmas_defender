@@ -3,7 +3,6 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -51,7 +50,7 @@ public class EnemyManager {
     private void attack(Enemy e, double delta) {
         // If the enemy has arrived at the destination
         if (point.distance(e.center, e.destination) < 1) {
-            MainActivity.takeDamage(e.attackDamage * delta);
+            MainGame.takeDamage(e.attackDamage * delta);
         }
     }
 
