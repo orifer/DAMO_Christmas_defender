@@ -4,9 +4,11 @@ import java.util.ArrayList;
 
 public class BallManager {
 
+    MainGame mainGame;
     private Ball ball;
 
-    public BallManager() {
+    public BallManager(MainGame mainGame) {
+        this.mainGame = mainGame;
         this.ball = new Ball();
     }
 
@@ -14,7 +16,7 @@ public class BallManager {
     public void onEveryTick(double delta) {
         // Height animation
         if (ball.thereIsDestination && !ball.holdingDown)
-            if (point.distance(ball.c, ball.destination) < point.distance(ball.c,constants.BALL_SPAWN))
+            if (Point.distance(ball.c, ball.destination) < Point.distance(ball.c, Constants.BALL_SPAWN))
                 ball.r -= 0.05;
             else
                 ball.r += 0.05;
@@ -22,7 +24,7 @@ public class BallManager {
 
     public void move(double delta) {
         if (ball.holdingDown || !ball.thereIsDestination) return;
-        double d = point.distance(ball.c, ball.destination);
+        double d = Point.distance(ball.c, ball.destination);
         double traversed = ball.r*ball.speedFactor*delta;
 
         if (d < traversed) {
@@ -31,53 +33,37 @@ public class BallManager {
             return;
         }
 
-        point direction = point.unitary( point.sub(ball.destination, ball.c) );
-        ball.c = point.sum(ball.c,point.mul(traversed, direction));
+        Point direction = Point.unitary( Point.sub(ball.destination, ball.c) );
+        ball.c = Point.sum(ball.c, Point.mul(traversed, direction));
     }
 
-    public void pushAside(point p) {
-        point pc = point.sub(ball.c,p);
-        double distance = point.abs(pc);
+    public void pushAside(Point p) {
+        Point pc = Point.sub(ball.c,p);
+        double distance = Point.abs(pc);
         if (distance >= ball.r) return;
         if (distance < 0.0001) return;
-        ball.c = point.sum(p, point.mul(ball.r, point.unitary(pc)));
+        ball.c = Point.sum(p, Point.mul(ball.r, Point.unitary(pc)));
     }
 
     public void pushAside(Enemy polygon) {
-        point p1 = polygon.center;
-        point p2 = point.mul(0.9,polygon.center); // Para controlar hitbox
+        Point p1 = polygon.center;
+        Point p2 = Point.mul(0.9,polygon.center); // Para controlar hitbox
         pushAside(p1);
         pushAside(p2);
-        point p1p2 = point.sub(p2,p1);
-        point p1c = point.sub(ball.c, p1);
-        double scalarProd = point.scalarProd(p1p2, p1c);
+        Point p1p2 = Point.sub(p2,p1);
+        Point p1c = Point.sub(ball.c, p1);
+        double scalarProd = Point.scalarProd(p1p2, p1c);
 
         // Hacer que no sean segmentos extendidos hasta infinito
         if (scalarProd <= 0) return;
-        if (scalarProd >= point.norm(p1p2)) return;
-        point projection = point.sum(p1, point.mul(scalarProd/point.norm(p1p2),p1p2));
+        if (scalarProd >= Point.norm(p1p2)) return;
+        Point projection = Point.sum(p1, Point.mul(scalarProd/ Point.norm(p1p2),p1p2));
         pushAside(projection);
-    }
-
-    // Todo: Mover a physicsManager
-    public void pushAside(EnemyManager enemyManager) {
-        ArrayList<Enemy> list = enemyManager.list;
-        Enemy p = null;
-
-        for (Enemy e : enemyManager.list) {
-            if (point.distance(e.center, ball.c) < ball.r*1) {
-                restart();
-                p = e;
-            }
-        }
-
-        if (p != null)
-            enemyManager.list.remove(p);
     }
 
     // Return the ball to the start
     public void restart() {
-        ball.c = constants.BALL_SPAWN;
+        ball.c = Constants.BALL_SPAWN;
         ball.r = 1;
         ball.thereIsDestination = false;
     }
@@ -88,7 +74,6 @@ public class BallManager {
         int steps = (int) (traversed / (ball.r/2.0)) + 1;
         for (int i = 0; i < steps; i++) {
             move(delta/steps);
-            pushAside(enemyManager);
         }
     }
 

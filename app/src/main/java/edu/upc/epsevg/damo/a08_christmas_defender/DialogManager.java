@@ -7,11 +7,11 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-public class dialogManager {
+public class DialogManager {
     SharedPreferences prefs;
     Context context;
 
-    public dialogManager(Context context) {
+    public DialogManager(Context context) {
         this.context = context;
         this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }

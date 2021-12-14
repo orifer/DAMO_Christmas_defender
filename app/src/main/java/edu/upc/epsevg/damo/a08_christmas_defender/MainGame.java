@@ -9,12 +9,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -36,19 +34,19 @@ public class MainGame extends Activity {
 
     BallManager ballManager;
     CameraManager cameramanager;
-    dialogManager dialogManager;
+    DialogManager dialogManager;
     EnemyManager enemyManager;
 
-    public Ball ball;
+    Ball ball;
     Bitmap background, slingshot, snowman;
     SharedPreferences prefs;
-    point worldFinger;
+    Point worldFinger;
     static double health;
     double delta;
     long time;
     int wave;
 
-    constants.GameStatus gameStatus;
+    Constants.GameStatus gameStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,15 +59,15 @@ public class MainGame extends Activity {
 
         // Camera
         int cameraZoom = 30;
-        ballManager = new BallManager();
+        ballManager = new BallManager(this);
         cameramanager = new CameraManager(width, height);
-        cameramanager.center = constants.CENTER;
-        cameramanager.right = new point(cameraZoom, 0);
+        cameramanager.center = Constants.CENTER;
+        cameramanager.right = new Point(cameraZoom, 0);
 
         // Init game elements
         ball = ballManager.getBall();
-        gameStatus = constants.GameStatus.RUNNING;
-        dialogManager = new dialogManager(MainGame.this);
+        gameStatus = Constants.GameStatus.RUNNING;
+        dialogManager = new DialogManager(MainGame.this);
         enemyManager = new EnemyManager(this);
         health = 100;
         wave = 1;
@@ -116,22 +114,22 @@ public class MainGame extends Activity {
             case RUNNING:
                 // Check if the player lost the wave
                 if (health == 0)
-                    gameStatus = constants.GameStatus.LOST;
+                    gameStatus = Constants.GameStatus.LOST;
 
                 // Check if you completed the wave
                 if (enemyManager.list.isEmpty() && health > 0)
-                    gameStatus = constants.GameStatus.WON;
+                    gameStatus = Constants.GameStatus.WON;
                 break;
 
 
             // You passed this wave, wait for the next one
             case WON:
                 // Spawn the next wave after the countdown and puts you to wait
-                gameStatus = constants.GameStatus.WAITING;
+                gameStatus = Constants.GameStatus.WAITING;
                 wave++;
                 handler.postDelayed(() -> {
                     enemyManager.spawnEnemies(10 + (wave * 2));
-                    gameStatus = constants.GameStatus.RUNNING;
+                    gameStatus = Constants.GameStatus.RUNNING;
                 }, 6000);
                 break;
 
@@ -156,8 +154,8 @@ public class MainGame extends Activity {
         canvas.drawColor(Color.WHITE);
 
         // Draw background
-        int x = (int) (cameramanager.world2screen(constants.CENTER).x - ((int) (width*1.5)/2));
-        int y = (int) (cameramanager.world2screen(constants.CENTER).y - ((int) (height*1.5)/2));
+        int x = (int) (cameramanager.world2screen(Constants.CENTER).x - ((int) (width*1.5)/2));
+        int y = (int) (cameramanager.world2screen(Constants.CENTER).y - ((int) (height*1.5)/2));
         canvas.drawBitmap(background, x , y, paint);
 
         // Draw enemies
@@ -173,29 +171,29 @@ public class MainGame extends Activity {
     }
 
     private void drawBall() {
-        point c = cameramanager.world2screen(ball.c);
+        Point c = cameramanager.world2screen(ball.c);
         double r = ball.r * cameramanager.world2ScreenFactor();
 
         // Draw slingshot base
-        point p = cameramanager.world2screen(constants.BALL_SPAWN);
-        Bitmap rotatedSlingshot = rotateBitmap(slingshot, (float) -point.angle(constants.BALL_SPAWN, ball.c));
+        Point p = cameramanager.world2screen(Constants.BALL_SPAWN);
+        Bitmap rotatedSlingshot = rotateBitmap(slingshot, (float) -Point.angle(Constants.BALL_SPAWN, ball.c));
         canvas.drawBitmap(rotatedSlingshot, (int) p.x - (rotatedSlingshot.getWidth()/2) , (int) p.y - (rotatedSlingshot.getHeight()/2), paint);
 
         // Draw strings
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(10);
-        if ((point.distance(constants.BALL_SPAWN, ball.c) < 8) && (worldFinger != null)) {
-            point or = cameramanager.world2screen(ball.c);
-            point u = point.orthogonal(point.unitary(point.sub(worldFinger,constants.BALL_SPAWN)));
+        if ((Point.distance(Constants.BALL_SPAWN, ball.c) < 8) && (worldFinger != null)) {
+            Point or = cameramanager.world2screen(ball.c);
+            Point u = Point.orthogonal(Point.unitary(Point.sub(worldFinger, Constants.BALL_SPAWN)));
             double slingshotRadius = 2;
-            point top = cameramanager.world2screen( point.sum(point.mul(slingshotRadius,u) , constants.BALL_SPAWN) );
-            point bottom = cameramanager.world2screen( point.sum(point.mul(-slingshotRadius,u) , constants.BALL_SPAWN) );
+            Point top = cameramanager.world2screen( Point.sum(Point.mul(slingshotRadius,u) , Constants.BALL_SPAWN) );
+            Point bottom = cameramanager.world2screen( Point.sum(Point.mul(-slingshotRadius,u) , Constants.BALL_SPAWN) );
 
             canvas.drawLine((float) or.x, (float) or.y, (float) top.x, (float) top.y, paint);
             canvas.drawLine((float) or.x, (float) or.y, (float)  bottom.x, (float) bottom.y, paint);
         } else {
-            point top = cameramanager.world2screen(point.sum(constants.BALL_SPAWN, new point(0, 2.5)));
-            point bottom = cameramanager.world2screen(point.sum(constants.BALL_SPAWN, new point(0, -2.5)));
+            Point top = cameramanager.world2screen(Point.sum(Constants.BALL_SPAWN, new Point(0, 2.5)));
+            Point bottom = cameramanager.world2screen(Point.sum(Constants.BALL_SPAWN, new Point(0, -2.5)));
             canvas.drawLine((float) bottom.x, (float) bottom.y, (float) top.x, (float) top.y, paint);
         }
 
@@ -244,7 +242,7 @@ public class MainGame extends Activity {
         linlay.addView(imageView);
 
         // Screen
-        Point myPoint = new Point();
+        android.graphics.Point myPoint = new android.graphics.Point();
         getWindowManager().getDefaultDisplay().getSize(myPoint);
         width = myPoint.x;
         height = myPoint.y;
@@ -273,7 +271,7 @@ public class MainGame extends Activity {
         imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                point finger = new point(event.getX(), event.getY());
+                Point finger = new Point(event.getX(), event.getY());
                 worldFinger = cameramanager.screen2world(finger);
 
                 // Mover bola
@@ -284,7 +282,7 @@ public class MainGame extends Activity {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
 
                         // Move ball
-                        if (point.distance(worldFinger, ball.c) < 3 * ball.r) {
+                        if (Point.distance(worldFinger, ball.c) < 3 * ball.r) {
                             ball.holdingDown = true;
                             ball.thereIsDestination = true;
                             ball.destination = worldFinger;
@@ -299,15 +297,15 @@ public class MainGame extends Activity {
 
                     // Move ball
                     if (ball.thereIsDestination) {
-                        ball.destination = point.sum(ball.c, point.mul(10, point.sub(constants.BALL_SPAWN, ball.c)));
-                        ball.speedFactor = point.distance(ball.c, ball.destination) * 0.5;
+                        ball.destination = Point.sum(ball.c, Point.mul(10, Point.sub(Constants.BALL_SPAWN, ball.c)));
+                        ball.speedFactor = Point.distance(ball.c, ball.destination) * 0.5;
 
                         // Max drag distance of the ball
                         int dist = 7;
-                        if (point.distance(constants.BALL_SPAWN, worldFinger) < dist)
+                        if (Point.distance(Constants.BALL_SPAWN, worldFinger) < dist)
                             ball.c = worldFinger;
                         else
-                            ball.c = point.sum(constants.BALL_SPAWN, point.mul(dist,point.unitary(point.sub(worldFinger,constants.BALL_SPAWN))));
+                            ball.c = Point.sum(Constants.BALL_SPAWN, Point.mul(dist, Point.unitary(Point.sub(worldFinger, Constants.BALL_SPAWN))));
 
                     // Move camera
                     } else {
@@ -326,8 +324,8 @@ public class MainGame extends Activity {
                     cameramanager.touch(cameramanager.screen2canonic(finger));
                     imageView.invalidate();
                 } else {
-                    point finger1 = new point(event.getX(0), event.getY(0));
-                    point finger2 = new point(event.getX(1), event.getY(1));
+                    Point finger1 = new Point(event.getX(0), event.getY(0));
+                    Point finger2 = new Point(event.getX(1), event.getY(1));
                     cameramanager.touch(cameramanager.screen2canonic(finger1), cameramanager.screen2canonic(finger2));
                 }
 
