@@ -51,6 +51,12 @@ public class MainGame extends Activity {
     GameStatus gameStatus;
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
@@ -302,8 +308,12 @@ public class MainGame extends Activity {
                         ball.destination = point.sum(ball.c, point.mul(10, point.sub(constants.BALL_SPAWN, ball.c)));
                         ball.speedFactor = point.distance(ball.c, ball.destination) * 0.5;
 
-                        if (point.distance(constants.BALL_SPAWN, worldFinger) < 7)
+                        // Max drag distance of the ball
+                        int dist = 7;
+                        if (point.distance(constants.BALL_SPAWN, worldFinger) < dist)
                             ball.c = worldFinger;
+                        else
+                            ball.c = point.sum(constants.BALL_SPAWN, point.mul(dist,point.unitary(point.sub(worldFinger,constants.BALL_SPAWN))));
 
                     // Move camera
                     } else {
