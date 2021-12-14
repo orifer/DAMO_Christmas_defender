@@ -34,11 +34,12 @@ public class MainGame extends Activity {
     Canvas canvas;
     Paint paint;
 
+    BallManager ballManager;
     CameraManager cameramanager;
     dialogManager dialogManager;
     EnemyManager enemyManager;
 
-    Ball ball;
+    public Ball ball;
     Bitmap background, slingshot, snowman;
     SharedPreferences prefs;
     point worldFinger;
@@ -47,14 +48,7 @@ public class MainGame extends Activity {
     long time;
     int wave;
 
-    enum GameStatus{RUNNING, WON, WAITING, LOST}
-    GameStatus gameStatus;
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        handler.removeCallbacksAndMessages(null);
-    }
+    constants.GameStatus gameStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,15 +61,16 @@ public class MainGame extends Activity {
 
         // Camera
         int cameraZoom = 30;
+        ballManager = new BallManager();
         cameramanager = new CameraManager(width, height);
         cameramanager.center = constants.CENTER;
         cameramanager.right = new point(cameraZoom, 0);
 
         // Init game elements
-        gameStatus = GameStatus.RUNNING;
+        ball = ballManager.getBall();
+        gameStatus = constants.GameStatus.RUNNING;
         dialogManager = new dialogManager(MainGame.this);
-        enemyManager = new EnemyManager();
-        ball = new Ball();
+        enemyManager = new EnemyManager(this);
         health = 100;
         wave = 1;
         handleMovement();
@@ -94,9 +89,9 @@ public class MainGame extends Activity {
                 delta = (newTime - time) / 1000.0;
                 time = newTime;
 
-                ball.move(delta, enemyManager);
                 enemyManager.onEveryTick(delta);
-                ball.onEveryTick(delta);
+                ballManager.onEveryTick(delta);
+                ballManager.move(delta, enemyManager);
                 checkGameStatus();
 
                 drawAll();
@@ -121,22 +116,22 @@ public class MainGame extends Activity {
             case RUNNING:
                 // Check if the player lost the wave
                 if (health == 0)
-                    gameStatus = GameStatus.LOST;
+                    gameStatus = constants.GameStatus.LOST;
 
                 // Check if you completed the wave
                 if (enemyManager.list.isEmpty() && health > 0)
-                    gameStatus = GameStatus.WON;
+                    gameStatus = constants.GameStatus.WON;
                 break;
 
 
             // You passed this wave, wait for the next one
             case WON:
                 // Spawn the next wave after the countdown and puts you to wait
-                gameStatus = GameStatus.WAITING;
+                gameStatus = constants.GameStatus.WAITING;
                 wave++;
                 handler.postDelayed(() -> {
                     enemyManager.spawnEnemies(10 + (wave * 2));
-                    gameStatus = GameStatus.RUNNING;
+                    gameStatus = constants.GameStatus.RUNNING;
                 }, 6000);
                 break;
 
@@ -261,7 +256,6 @@ public class MainGame extends Activity {
         canvas.setBitmap(bitmap);
     }
 
-    // Algo temporal
     static void takeDamage(double damage) {
         health -= damage;
         if (health < 0) health = 0;
@@ -340,6 +334,12 @@ public class MainGame extends Activity {
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
     }
 
 }
