@@ -47,7 +47,7 @@ public class EnemyManager {
         ArrayList<Enemy> enemies = new ArrayList<>(list); // Cloned list
 
         for (Enemy e : enemies) {
-            if (Point.distance(e.center, ball.c) < ball.r * 1.5) {
+            if ( (Point.distance(e.center, ball.c) < ball.r * 1.5) && (e.enemyStatus == Constants.EnemyStatus.ALIVE) ) {
                 mainGame.ballManager.restart();
                 e.enemyStatus = Constants.EnemyStatus.DYING;
             }
