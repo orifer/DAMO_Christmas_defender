@@ -38,7 +38,7 @@ public class MainGame extends Activity {
     EnemyManager enemyManager;
 
     Ball ball;
-    Bitmap background, slingshot, snowman;
+    Bitmap background, slingshot;
     SharedPreferences prefs;
     Point worldFinger;
     static double health;
@@ -103,7 +103,6 @@ public class MainGame extends Activity {
         Bitmap background_base = BitmapFactory.decodeResource(this.getResources(), R.drawable.background);
         background = Bitmap.createScaledBitmap(background_base, (int) (width*1.5), (int) (height*1.5), false);
 
-        snowman = BitmapFactory.decodeResource(this.getResources(), R.drawable.evil_snowman);
         slingshot = BitmapFactory.decodeResource(this.getResources(), R.drawable.slingshoot);
     }
 
@@ -160,7 +159,7 @@ public class MainGame extends Activity {
 
         // Draw enemies
         for (Enemy e : enemyManager.list) {
-            enemyManager.drawEnemy(canvas, cameramanager, snowman, e);
+            enemyManager.drawEnemy(canvas, cameramanager, e);
         }
 
         drawHUD();

@@ -1,6 +1,7 @@
 package edu.upc.epsevg.damo.a08_christmas_defender;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.util.Log;
@@ -15,15 +16,20 @@ public class EnemyManager {
     int enemiesOnScreen;
     int maxEnemiesOnScreen = 8;
 
+    Bitmap snowman;
+    Bitmap[] snowman_death;
+
     public EnemyManager(MainGame mainGame) {
         this.mainGame = mainGame;
         this.list = new ArrayList<>();
+        loadBitmaps();
         spawnEnemies(5);
     }
 
     // Things to do every tick
     public void onEveryTick(double delta) {
-        for (Enemy e : list) {
+        ArrayList<Enemy> enemies = new ArrayList<>(list); // Cloned list
+        for (Enemy e : enemies) {
             if (e.enemyStatus.equals(Constants.EnemyStatus.ALIVE)) {
                 moveEnemy(e, delta);
                 attack(e, delta);
@@ -38,35 +44,33 @@ public class EnemyManager {
 
     public void checkHitEnemies() {
         Ball ball = mainGame.ballManager.getBall();
+        ArrayList<Enemy> enemies = new ArrayList<>(list); // Cloned list
 
-        Enemy p = null;
-
-        for (Enemy e : list) {
-            if (Point.distance(e.center, ball.c) < ball.r*1) {
+        for (Enemy e : enemies) {
+            if (Point.distance(e.center, ball.c) < ball.r * 1.5) {
                 mainGame.ballManager.restart();
-                p = e;
+                e.enemyStatus = Constants.EnemyStatus.DYING;
             }
-        }
-
-        if (p != null) {
-            p.enemyStatus = Constants.EnemyStatus.DYING;
-            // list.remove(p);
         }
     }
 
     private void animateDeath(Enemy e, double delta) {
-        e.timeToDie += delta;
+        e.timeToDie += delta*10;
         int value = (int) e.timeToDie;
-        if (value <= Enemy.timeToDieMax) {
-            Log.i("DEBUG", "Enemy ded " + value);
+        if (value < Enemy.timeToDieMax && value > 0) {
+            e.bitmap = snowman_death[value];
         }
+
+        // The animation is over, delete the entity
+        else if (value > Enemy.timeToDieMax)
+            list.remove(e);
     }
 
     private void spawnEnemies() {
         enemiesOnScreen = list.size();
 
         if (remaining > 0 && enemiesOnScreen < maxEnemiesOnScreen) {
-            list.add(new Enemy());
+            list.add(new Enemy(snowman));
             remaining--;
         }
     }
@@ -75,11 +79,11 @@ public class EnemyManager {
         remaining = enemies;
     }
 
-    public void drawEnemy(Canvas canvas, CameraManager cameramanager, Bitmap bitmap, Enemy enemy) {
+    public void drawEnemy(Canvas canvas, CameraManager cameramanager, Enemy enemy) {
         int x = (int) cameramanager.world2screen(enemy.center).x;
         int y = (int) cameramanager.world2screen(enemy.center).y;
-        int size = 100;
-        canvas.drawBitmap(bitmap, null, new RectF(x-size,y-size, x+size, y+size), null);
+        int size = 80;
+        canvas.drawBitmap(enemy.bitmap, null, new RectF(x-size,y-size, x+size, y+size), null);
     }
 
     private void attack(Enemy e, double delta) {
@@ -105,6 +109,26 @@ public class EnemyManager {
             Point direction = Point.unitary( Point.sub(e.destination, e.center) );
             e.center = Point.sum(e.center, Point.mul(traversedStep, direction));
         }
+    }
+
+    private void loadBitmaps() {
+        snowman = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman);
+
+        // Death animation
+        snowman_death = new Bitmap[13];
+        snowman_death[0] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_1);
+        snowman_death[1] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_2);
+        snowman_death[2] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_3);
+        snowman_death[3] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_4);
+        snowman_death[4] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_5);
+        snowman_death[5] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_6);
+        snowman_death[6] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_7);
+        snowman_death[7] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_8);
+        snowman_death[8] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_9);
+        snowman_death[9] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_10);
+        snowman_death[10] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_11);
+        snowman_death[11] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_12);
+        snowman_death[12] = BitmapFactory.decodeResource(mainGame.getResources(), R.drawable.snowman_13);
     }
 
 }
