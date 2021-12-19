@@ -69,7 +69,7 @@ public class EnemyManager {
     private void spawnEnemies() {
         enemiesOnScreen = list.size();
 
-        if (remaining > 0 && enemiesOnScreen < maxEnemiesOnScreen) {
+        if ( (remaining > 0) && (enemiesOnScreen < maxEnemiesOnScreen) ) {
             list.add(new Enemy(snowman));
             remaining--;
         }
