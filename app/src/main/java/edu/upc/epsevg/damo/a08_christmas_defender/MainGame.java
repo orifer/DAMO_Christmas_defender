@@ -12,6 +12,7 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -214,11 +215,27 @@ public class MainGame extends Activity {
         paint.setColor(Color.BLACK);
         paint.setStyle(Paint.Style.FILL);
         paint.setTextSize(textSize);
-        canvas.drawText("WAVE " + wave, (float) width/2 - textSize, textSize, paint);
+        canvas.drawText("WAVE " + wave, (float) width/2 - (textSize + 60), textSize, paint);
 
-        // Health
-        paint.setTextSize(70);
-        canvas.drawText("Health: " + new BigDecimal(health).setScale(2, RoundingMode.HALF_UP).doubleValue(), (float) width/2 - 180, height - 10, paint);
+        // Health bar
+        int value = (int) (-health * 7.65) + 965; // Spaguetti but working :)
+        int green = (int) (255 * ((float) (health/100)));
+        int red = 255 - green;
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.rgb(red, green, 0));
+        canvas.drawRect(value,height - 60,width - value, height-10, paint);
+
+        // Health bar border
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(5);
+        canvas.drawRect(200,height - 60,width - 200, height-10, paint);
+
+        // Health number
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(50);
+        canvas.drawText("Health: " + new BigDecimal(health).setScale(2, RoundingMode.HALF_UP).doubleValue(), (float) width/2 - 150, height - 18, paint);
 
         // Delta timing
         paint.setTextSize(30);
