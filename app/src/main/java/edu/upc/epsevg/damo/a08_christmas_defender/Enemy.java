@@ -16,10 +16,10 @@ public class Enemy {
     static final double timeToDieMax = 13; // Number of frames of the death animation
 
     Enemy(Bitmap bitmap) {
-        double dispersioX = Math.random() * 40;
-        double dispersioY = Math.random() * 20;
-        int x = (int) (dispersioX - 70);
-        int y = (int) (dispersioY - 15);
+        double dispersioX = Math.random() * 60;
+        double dispersioY = Math.random() * 33;
+        int x = (int) (dispersioX - 100);
+        int y = (int) (dispersioY - 14);
 
         this.center = new Point(x, y);
         this.destination = new Point(10, y);

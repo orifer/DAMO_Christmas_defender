@@ -23,7 +23,6 @@ public class EnemyManager {
         this.mainGame = mainGame;
         this.list = new ArrayList<>();
         loadBitmaps();
-        spawnEnemies(5);
     }
 
     // Things to do every tick

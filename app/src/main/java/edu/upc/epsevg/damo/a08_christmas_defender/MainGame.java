@@ -70,7 +70,7 @@ public class MainGame extends Activity {
         dialogManager = new DialogManager(MainGame.this);
         enemyManager = new EnemyManager(this);
         health = 100;
-        wave = 1;
+        wave = 0;
         handleMovement();
 
         // Dialogs
