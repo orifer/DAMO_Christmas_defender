@@ -3,9 +3,13 @@ package edu.upc.epsevg.damo.a08_christmas_defender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class EnemyManager {
@@ -83,6 +87,28 @@ public class EnemyManager {
         int y = (int) cameramanager.world2screen(enemy.center).y;
         int size = 80;
         canvas.drawBitmap(enemy.bitmap, null, new RectF(x-size,y-size, x+size, y+size), null);
+
+        Paint paint = new Paint();
+
+        // Health bar
+//        int value = (int) (-enemy.health * 7.65) + 965; // Spaguetti but working :)
+//        int green = (int) (255 * ((float) (enemy.health/100)));
+//        int red = 255 - green;
+//        paint.setStyle(Paint.Style.FILL);
+//        paint.setColor(Color.rgb(red, green, 0));
+//        canvas.drawRect(value,mainGame.height - 60,mainGame.height - value, mainGame.height-10, paint);
+
+        // Health bar border
+//        paint.setStyle(Paint.Style.STROKE);
+//        paint.setColor(Color.BLACK);
+//        paint.setStrokeWidth(5);
+//        canvas.drawRect(x-size,y-size,x+size, y, paint);
+
+        // Health number
+//        paint.setColor(Color.BLACK);
+//        paint.setStyle(Paint.Style.FILL);
+//        paint.setTextSize(10);
+//        canvas.drawText("Health: " + new BigDecimal(enemy.health).setScale(2, RoundingMode.HALF_UP).doubleValue(), (float) width/2 - 150, height - 18, paint);
     }
 
     private void attack(Enemy e, double delta) {
