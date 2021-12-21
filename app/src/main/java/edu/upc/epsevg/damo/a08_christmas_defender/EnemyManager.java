@@ -52,7 +52,12 @@ public class EnemyManager {
         for (Enemy e : enemies) {
             if ( (Point.distance(e.center, ball.c) < ball.r * 1.5) && (e.enemyStatus == Constants.EnemyStatus.ALIVE) ) {
                 mainGame.ballManager.restart();
-                e.enemyStatus = Constants.EnemyStatus.DYING;
+
+                e.health -= ball.damageFactor;
+                if (e.health <= 0) {
+                    e.enemyStatus = Constants.EnemyStatus.DYING;
+                }
+
             }
         }
     }
@@ -90,25 +95,21 @@ public class EnemyManager {
 
         Paint paint = new Paint();
 
-        // Health bar
-//        int value = (int) (-enemy.health * 7.65) + 965; // Spaguetti but working :)
-//        int green = (int) (255 * ((float) (enemy.health/100)));
-//        int red = 255 - green;
-//        paint.setStyle(Paint.Style.FILL);
-//        paint.setColor(Color.rgb(red, green, 0));
-//        canvas.drawRect(value,mainGame.height - 60,mainGame.height - value, mainGame.height-10, paint);
+        if (enemy.health < enemy.maxHealth) {
+            // Health bar
+            int value = (int) ((enemy.health / enemy.maxHealth) * 40);
+            int green = (int) (255 * ((float) (enemy.health/100)));
+            int red = 255 - green;
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(Color.rgb(red, green, 0));
+            canvas.drawRect(x-(value),y-size,x+(value), y-size+10, paint);
 
-        // Health bar border
-//        paint.setStyle(Paint.Style.STROKE);
-//        paint.setColor(Color.BLACK);
-//        paint.setStrokeWidth(5);
-//        canvas.drawRect(x-size,y-size,x+size, y, paint);
-
-        // Health number
-//        paint.setColor(Color.BLACK);
-//        paint.setStyle(Paint.Style.FILL);
-//        paint.setTextSize(10);
-//        canvas.drawText("Health: " + new BigDecimal(enemy.health).setScale(2, RoundingMode.HALF_UP).doubleValue(), (float) width/2 - 150, height - 18, paint);
+            // Health bar border
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(Color.BLACK);
+            paint.setStrokeWidth(5);
+            canvas.drawRect(x-(size-40),y-size,x+(size-40), y-size+10, paint);
+        }
     }
 
     private void attack(Enemy e, double delta) {

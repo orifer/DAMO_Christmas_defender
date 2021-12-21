@@ -7,6 +7,7 @@ public class Ball {
     Point destination;
     double speedFactor;
     boolean holdingDown;
+    double damageFactor;
 
     public Ball() {
         c = Constants.BALL_SPAWN;
@@ -14,6 +15,7 @@ public class Ball {
         speedFactor = 10;
         thereIsDestination = false;
         holdingDown = false;
+        damageFactor = 1;
     }
 
     public Ball(Point inc, double inr) {

@@ -10,6 +10,7 @@ public class Enemy {
     double radius;
     double speedFactor;
     double health;
+    double maxHealth;
     Bitmap bitmap;
     int attackDamage;
     double timeToDie;
@@ -25,7 +26,8 @@ public class Enemy {
         this.destination = new Point(10, y);
         this.speedFactor = 0.1;
         this.radius = 50;
-        this.health = 10;
+        this.health = 3;
+        this.maxHealth = 3;
         this.attackDamage = 1;
         this.enemyStatus = Constants.EnemyStatus.ALIVE;
         this.bitmap = bitmap;

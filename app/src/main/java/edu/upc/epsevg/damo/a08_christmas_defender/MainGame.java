@@ -128,7 +128,7 @@ public class MainGame extends Activity {
                 gameStatus = Constants.GameStatus.WAITING;
                 wave++;
                 handler.postDelayed(() -> {
-                    enemyManager.spawnEnemies(5 + (wave * 2));
+                    enemyManager.spawnEnemies(Constants.STARTING_ENEMIES + (wave * 2));
                     gameStatus = Constants.GameStatus.RUNNING;
                 }, 6000);
                 break;
